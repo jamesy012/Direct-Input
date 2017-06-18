@@ -1,0 +1,15 @@
+# Unity
+Unity/Temp/
+Unity/Library/
+
+# C++
+Cpp/DllProject/.vs/
+Cpp/DllProject/Builds/
+Cpp/DllProject/Intermediate_Dir/
+Cpp/DllProject/DirectInputDll.sdf
+Cpp/DllProject/DirectInputDll.VC.opendb
+Cpp/TestProject/.vs/
+Cpp/TestProject/Builds/
+Cpp/TestProject/Intermediate_Dir/
+Cpp/TestProject/DirectInputTest.sdf
+Cpp/TestProject/DirectInputTest.VC.opendb
