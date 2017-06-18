@@ -1,35 +1,11 @@
 
 
 
-#if _MSC_VER // this is defined when compiling with Visual Studio
-#define EXPORT_API __declspec(dllexport) // Visual Studio needs annotating exported functions with this
-#else
-#define EXPORT_API // XCode does not need annotating exported functions, so define is empty
-#endif
 
 
-// ------------------------------------------------------------------------
-// Plugin itself
+#include "DirectInputHeader.h"
 
-#include <dinput.h>
 
-#define MAX_AXES_VALUE 1000
-
-LPDIRECTINPUT8 di;
-LPDIRECTINPUTDEVICE8 joystick;
-DIJOYSTATE2 joystickState;
-DIDEVCAPS capabilities;
-
-const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
-
-enum Axes {
-	LStickX,
-	LStickY,
-	RStickX,
-	RStickY,
-	LeftTrigger,
-	RightTrigger
-};
 
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
@@ -87,17 +63,21 @@ float getAxisFromEnum(Axes a_Axis) {
 	default:
 		return 0.0f;
 	}
+	return value;
 }
 
 
 // Link following functions C-style (required for plugins)
-extern "C"
-{
+//extern "C"
+//{
 
 
 	int EXPORT_API startInput() {
 		HRESULT hr;
 		HWND handle = GetActiveWindow();
+		if (handle == NULL) {
+			handle = GetConsoleWindow();
+		}
 
 		hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, NULL);
 		if (FAILED(hr)) {
@@ -119,7 +99,7 @@ extern "C"
 		}
 
 
-		hr = joystick->SetCooperativeLevel(handle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+		hr = joystick->SetCooperativeLevel(handle, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
 		if (FAILED(hr)) {
 			return hr;
 		}
@@ -225,4 +205,4 @@ extern "C"
 	}
 
 
-} // end of export C block
+//} // end of export C block

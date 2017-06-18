@@ -69,24 +69,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Builds\$(Configuration)\</OutDir>
-    <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <IntDir>$(SolutionDir)Intermediate_Dir\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Builds\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <TargetName>ControllerInputDll</TargetName>
+    <IntDir>$(SolutionDir)Intermediate_Dir\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)Builds\$(Configuration)\</OutDir>
-    <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <IntDir>$(SolutionDir)Intermediate_Dir\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Builds\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <TargetName>ControllerInputDll</TargetName>
+    <IntDir>$(SolutionDir)Intermediate_Dir\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Builds\$(Configuration)\</OutDir>
-    <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <IntDir>$(SolutionDir)Intermediate_Dir\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Builds\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <TargetName>ControllerInputDll</TargetName>
+    <IntDir>$(SolutionDir)Intermediate_Dir\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)Builds\$(Configuration)\</OutDir>
-    <TargetName>$(ProjectName)_$(Platform)</TargetName>
-    <IntDir>$(SolutionDir)Intermediate_Dir\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Builds\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
+    <TargetName>ControllerInputDll</TargetName>
+    <IntDir>$(SolutionDir)Intermediate_Dir\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -97,6 +97,10 @@
     <Link>
       <AdditionalDependencies>dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>echo moving dll to workingDir
+copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\ControllerInputDll.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -107,6 +111,10 @@
     <Link>
       <AdditionalDependencies>dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>echo moving dll to workingDir
+copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\ControllerInputDll.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -121,6 +129,10 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>echo moving dll to workingDir
+copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\ControllerInputDll.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -135,9 +147,16 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>dinput8.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>echo moving dll to workingDir
+copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\ControllerInputDll.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="DirectInput.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="DirectInputHeader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

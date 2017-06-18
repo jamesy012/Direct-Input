@@ -1,15 +1,15 @@
 # Unity
+Unity/.vs/
 Unity/Temp/
 Unity/Library/
+Unity/Builds/
 
 # C++
-Cpp/DllProject/.vs/
-Cpp/DllProject/Builds/
-Cpp/DllProject/Intermediate_Dir/
-Cpp/DllProject/DirectInputDll.sdf
-Cpp/DllProject/DirectInputDll.VC.opendb
-Cpp/TestProject/.vs/
-Cpp/TestProject/Builds/
-Cpp/TestProject/Intermediate_Dir/
-Cpp/TestProject/DirectInputTest.sdf
-Cpp/TestProject/DirectInputTest.VC.opendb
+Cpp/DirectInput/.vs/
+Cpp/DirectInput/Builds/
+Cpp/DirectInput/Intermediate_Dir/
+Cpp/DirectInput/DirectInput.sdf
+Cpp/DirectInput/DirectInput.VC.opendb
+
+Unity/Assets/Plugins/DirectInput/64/ControllerInputDll.dll
+Unity/Assets/Plugins/DirectInput/32/ControllerInputDll.dll

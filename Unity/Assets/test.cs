@@ -22,28 +22,28 @@ public enum ControllerAxes {
 
 public class test : MonoBehaviour {
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int startInput();
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern void releaseInput();
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int updateInput();
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int getButton(int a_Button);
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int getAxesValue(int a_Axis);
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int getPovValue();
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern int getPovDir();
 
-    [DllImport("UnityDirectInputDll")]
+    [DllImport("ControllerInputDll")]
     private static extern IntPtr getPovName(int a_Direction);
 
 
