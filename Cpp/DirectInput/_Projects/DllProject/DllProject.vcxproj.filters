@@ -20,7 +20,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectInputHeader.h">
+    <ClInclude Include="ControllerMapping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

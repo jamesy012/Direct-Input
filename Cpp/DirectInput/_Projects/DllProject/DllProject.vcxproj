@@ -156,7 +156,8 @@ copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\
     <ClCompile Include="DirectInput.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectInputHeader.h" />
+    <ClInclude Include="ControllerMapping.h" />
+    <ClInclude Include="DirectInput.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

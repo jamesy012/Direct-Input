@@ -2,6 +2,7 @@
 
 
 //includes
+#define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
 
@@ -33,6 +34,11 @@ enum Axes {
 	RightTrigger
 };
 
+struct Controller_Data {
+	const char* m_Name;
+	GUID m_CommonGuid;
+};
+
 //functions
 
 //normal functions
@@ -48,10 +54,16 @@ extern "C" {
 	int EXPORT_API startInput();
 	void EXPORT_API releaseInput();
 	int EXPORT_API updateInput();
-	int EXPORT_API getButton(int index);
-	int EXPORT_API getAxesValue(int index);
+	int EXPORT_API getButton(int a_Index);
+	int EXPORT_API getAxesValue(int a_Index);
 	int EXPORT_API getPovValue();
 	int EXPORT_API getPovDir();
 	const EXPORT_API wchar_t* getPovName(int a_Dir);
+
+	int EXPORT_API getNumOfButtons();
+	int EXPORT_API getNumOfAxis();
+	int EXPORT_API getNumOfPov();
+
+	const EXPORT_API wchar_t* getButtonName(int a_Button);
 
 } // end of export C block

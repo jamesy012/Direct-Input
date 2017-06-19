@@ -10,6 +10,3 @@ Cpp/DirectInput/Builds/
 Cpp/DirectInput/Intermediate_Dir/
 Cpp/DirectInput/DirectInput.sdf
 Cpp/DirectInput/DirectInput.VC.opendb
-
-Unity/Assets/Plugins/DirectInput/64/ControllerInputDll.dll
-Unity/Assets/Plugins/DirectInput/32/ControllerInputDll.dll
