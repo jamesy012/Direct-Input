@@ -8,7 +8,7 @@ const Controller_Data CommonControllers[] = {
 };
 
 
-int EXPORT_API startInput() {
+const EXPORT_API int startInput() {
 	if (di != nullptr) {
 		return E_FAIL;
 	}
@@ -56,17 +56,24 @@ int EXPORT_API startInput() {
 	}
 
 
-	DIDEVICEINSTANCEA deviceInfo;
+	
 	deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
 	hr = joystick->GetDeviceInfo(&deviceInfo);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
+	//DIDEVICEOBJECTDATA rgdod[10];
+	//DWORD dwItems = 10;
+	//hr = joystick->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), rgdod, &dwItems, 0);
+	//if (FAILED(hr)) {
+	//	return hr;
+	//}
+
 	return S_OK;
 }
 
-void EXPORT_API releaseInput() {
+const EXPORT_API void releaseInput() {
 	if (joystick) {
 		joystick->Unacquire();
 		joystick->Release();
@@ -76,7 +83,7 @@ void EXPORT_API releaseInput() {
 	di = nullptr;
 }
 
-int EXPORT_API updateInput() {
+const EXPORT_API int updateInput() {
 	HRESULT hr;
 
 	if (joystick == NULL) {
@@ -108,7 +115,7 @@ int EXPORT_API updateInput() {
 	return S_OK;
 }
 
-int EXPORT_API getButton(int a_Index) {
+const EXPORT_API int getButton(int a_Index) {
 	if (joystick) {
 		if (a_Index >= capabilities.dwButtons || a_Index <= -1) {
 			return 0;
@@ -118,21 +125,21 @@ int EXPORT_API getButton(int a_Index) {
 	return 0;
 }
 
-int EXPORT_API getAxesValue(int a_Index) {
+const EXPORT_API int getAxesValue(int a_Index) {
 	if (joystick) {
 		return getAxisFromEnum((Axes) a_Index);
 	}
 	return 0;
 }
 
-int EXPORT_API getPovValue() {
+const EXPORT_API int getPovValue() {
 	if (joystick) {
 		return joystickState.rgdwPOV[0];
 	}
 	return 0;
 }
 
-int EXPORT_API getPovDir() {
+const EXPORT_API int getPovDir() {
 	int hat = 0;
 	if (joystick) {
 		hat = ((int) joystickState.rgdwPOV[0] / 4500) + 1;
@@ -153,21 +160,21 @@ const EXPORT_API wchar_t* getPovName(int a_Dir) {
 	return hatDirections[0];
 }
 
-int EXPORT_API getNumOfButtons() {
+const EXPORT_API int getNumOfButtons() {
 	if (joystick) {
 		return capabilities.dwButtons;
 	}
 	return 0;
 }
 
-int EXPORT_API getNumOfAxis() {
+const EXPORT_API int getNumOfAxis() {
 	if (joystick) {
 		return capabilities.dwAxes;
 	}
 	return 0;
 }
 
-int EXPORT_API getNumOfPov() {
+const EXPORT_API int getNumOfPov() {
 	if (joystick) {
 		return capabilities.dwPOVs;
 	}
@@ -208,6 +215,20 @@ const EXPORT_API wchar_t * getButtonName(int a_Button) {
 			break;
 	}
 	return L"UNKNOWN";
+}
+
+const EXPORT_API char* getDeviceName() {
+	if (joystick) {
+		return deviceInfo.tszProductName;
+	}
+	return "";
+}
+
+const EXPORT_API GUID getDeviceGUID() {
+	if (joystick) {
+		return deviceInfo.guidProduct;
+	}
+	return GUID();
 }
 
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {

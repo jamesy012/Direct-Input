@@ -19,9 +19,12 @@
 #define MAX_AXES_VALUE 1000
 
 LPDIRECTINPUT8 di;
+
+//todo: move these variables to a struct so we can have more then 1 controller
 LPDIRECTINPUTDEVICE8 joystick;
 DIJOYSTATE2 joystickState;
 DIDEVCAPS capabilities;
+DIDEVICEINSTANCEA deviceInfo;
 
 const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
 
@@ -51,19 +54,21 @@ float getAxisFromEnum(Axes a_Axis);
 // Link following functions C-style (required for plugins)
 extern "C" {
 
-	int EXPORT_API startInput();
-	void EXPORT_API releaseInput();
-	int EXPORT_API updateInput();
-	int EXPORT_API getButton(int a_Index);
-	int EXPORT_API getAxesValue(int a_Index);
-	int EXPORT_API getPovValue();
-	int EXPORT_API getPovDir();
-	const EXPORT_API wchar_t* getPovName(int a_Dir);
+	const	EXPORT_API	int			startInput();
+	const	EXPORT_API	void		releaseInput();
+	const	EXPORT_API	int			updateInput();
+	const	EXPORT_API	int			getButton(int a_Index);
+	const	EXPORT_API	int			getAxesValue(int a_Index);
+	const	EXPORT_API	int			getPovValue();
+	const	EXPORT_API	int			getPovDir();
+	const	EXPORT_API	wchar_t*	getPovName(int a_Dir);
 
-	int EXPORT_API getNumOfButtons();
-	int EXPORT_API getNumOfAxis();
-	int EXPORT_API getNumOfPov();
+	const	EXPORT_API	int			getNumOfButtons();
+	const	EXPORT_API	int			getNumOfAxis();
+	const	EXPORT_API	int			getNumOfPov();
 
-	const EXPORT_API wchar_t* getButtonName(int a_Button);
+	const	EXPORT_API	wchar_t*	getButtonName(int a_Button);
 
+	const	EXPORT_API	char*		getDeviceName();
+	const	EXPORT_API	GUID		getDeviceGUID();
 } // end of export C block

@@ -10,3 +10,7 @@ Cpp/DirectInput/Builds/
 Cpp/DirectInput/Intermediate_Dir/
 Cpp/DirectInput/DirectInput.sdf
 Cpp/DirectInput/DirectInput.VC.opendb
+
+Cpp/DirectInput/_WorkingDir/ControllerInputDll.dll
+Cpp/DirectInput/_WorkingDir/DirectInputTest.zip
+Cpp/DirectInput/_WorkingDir/DirectInputTest_Win32.exe
