@@ -11,9 +11,9 @@ int main() {
 		return hr;
 	}
 
-	std::cout << "Device name: " << getDeviceName() << "\nGUID ";
+	std::cout << "Device name: " << getDeviceName() << " Known name: "  << "\nGUID ";
 	GUID guid = getDeviceGUID();
-	std::cout <<  guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";
+	std::cout << guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";
 	for (int i = 0; i < 8; i++) {
 		if (i != 0) {
 			std::cout << ", ";
@@ -22,6 +22,8 @@ int main() {
 	}
 
 	std::cout << ")" << std::endl;
+
+	std::cout << "Number of buttons: " << getNumOfButtons() << std::endl;
 
 	system("pause");
 
@@ -36,13 +38,25 @@ int main() {
 		updateInput();
 
 		std::cout << "Left Trigger: " << getAxesValue(Axes::LeftTrigger) << std::endl;
-		std::cout << "Button numbers: " << std::endl << "\t";
+		std::cout << "Right Trigger: " << getAxesValue(Axes::RightTrigger) << std::endl;
+		std::cout << "Left Stick X: " << getAxesValue(Axes::LStickX) << std::endl;
+		std::cout << "Left Stick Y: " << getAxesValue(Axes::LStickY) << std::endl;
+		std::cout << "Right Stick X: " << getAxesValue(Axes::RStickX) << std::endl;
+		std::cout << "Right Stick Y: " << getAxesValue(Axes::RStickY) << std::endl;
+
+		std::cout << "Button numbers: (Normal/converted)" << std::endl << "\t";
 		for (int i = 0; i < getNumOfButtons(); i++) {
-			if (getButton(i)) {
-				std::wcout << i << "(" << getButtonName(i) << ")" << ", ";
+			if (getButtonNormal(i)) {
+				std::wcout << i << "/" << getButtonIndex(i) << "(" << getButtonName(i) << "/" << getButtonName(getButtonIndex(i)) << ")" << ", ";
 			}
 		}
+
+
 		std::cout << std::endl;
+
+		std::wcout << "Pov Dir: " << getPovName(getPovDir());
+
+
 		if (getButton(PS4_START)) {
 			loop = false;
 		}

@@ -2,9 +2,27 @@
 #include "DirectInput.h"
 #include "ControllerMapping.h"
 
-
-const Controller_Data CommonControllers[] = {
-	{ "PS4 Controller",GUID{ 96732492,0,0,{0,0,80,73,68,86,73,68 }} }
+#define NUM_OF_COMMON_CONTROLLER_TYPES 3
+//const Controller_Data CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
+//	{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } }
+//	,{ "Gamepad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } }
+//};
+const Controller_Mapping CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
+	Controller_Mapping{
+	/*guid*/	Controller_Data{ "UNKNOWN",GUID{ 0,0,0,{ 0,0,0,0,0,0,0,0 } } },
+	/*buttons*/ Controller_Buttons{ { 0 } },
+	///*Axes*/	{ 0,1,2,3,4,5 }
+},
+	Controller_Mapping{
+	/*guid*/	Controller_Data{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } },
+	/*buttons*/ Controller_Buttons{{ PS4_CROSS, PS4_CIRCLE, PS4_SQUARE, PS4_TRIANGLE, PS4_L1, PS4_R1, PS4_SELECT, PS4_START, PS4_L3, PS4_R3, PS4_TOUCH_PAD, 10, 10}},
+	///*Axes*/	{ 0,1,2,3,4,5 }
+	},
+	Controller_Mapping{
+	/*guid*/	Controller_Data{ "Game pad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
+	/*buttons*/ Controller_Buttons{{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, }},
+	///*Axes*/	2, ps4_axes
+	}
 };
 
 
@@ -19,7 +37,7 @@ const EXPORT_API int startInput() {
 		handle = GetConsoleWindow();
 	}
 
-	hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**) &di, NULL);
+	hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, NULL);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -56,7 +74,7 @@ const EXPORT_API int startInput() {
 	}
 
 
-	
+
 	deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
 	hr = joystick->GetDeviceInfo(&deviceInfo);
 	if (FAILED(hr)) {
@@ -120,6 +138,17 @@ const EXPORT_API int getButton(int a_Index) {
 		if (a_Index >= capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
+		int index = getButtonIndex(a_Index);
+		return joystickState.rgbButtons[index];
+	}
+	return 0;
+}
+
+const EXPORT_API int getButtonNormal(int a_Index) {
+	if (joystick) {
+		if (a_Index >= capabilities.dwButtons || a_Index <= -1) {
+			return 0;
+		}
 		return joystickState.rgbButtons[a_Index];
 	}
 	return 0;
@@ -127,7 +156,7 @@ const EXPORT_API int getButton(int a_Index) {
 
 const EXPORT_API int getAxesValue(int a_Index) {
 	if (joystick) {
-		return getAxisFromEnum((Axes) a_Index);
+		return getAxisFromEnum((Axes)a_Index);
 	}
 	return 0;
 }
@@ -142,8 +171,8 @@ const EXPORT_API int getPovValue() {
 const EXPORT_API int getPovDir() {
 	int hat = 0;
 	if (joystick) {
-		hat = ((int) joystickState.rgdwPOV[0] / 4500) + 1;
-		if (joystickState.rgdwPOV[0] == -1 || (unsigned int) hat >= 10) {
+		hat = ((int)joystickState.rgdwPOV[0] / 4500) + 1;
+		if (joystickState.rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
 			hat = 0;
 		}
 	}
@@ -183,38 +212,42 @@ const EXPORT_API int getNumOfPov() {
 
 const EXPORT_API wchar_t * getButtonName(int a_Button) {
 	switch (a_Button) {
-		case PS4_CROSS:
-			return L"Cross";
-		case PS4_CIRCLE:
-			return L"Circle";
-		case PS4_TRIANGLE:
-			return L"Triangle";
-		case PS4_SQUARE:
-			return L"Square";
-		case PS4_L1:
-			return L"L1";
-		case PS4_R1:
-			return L"R1";
-		case PS4_L2:
-			return L"L2";
-		case PS4_R2:
-			return L"R2";
-		case PS4_SELECT:
-			return L"Select";
-		case PS4_START:
-			return L"Start";
-		case PS4_L3:
-			return L"L3";
-		case PS4_R3:
-			return L"R3";
-		case PS4_PS:
-			return L"PS";
-		case PS4_TOUCH_PAD:
-			return L"Touch Pad";
-		default:
-			break;
+	case PS4_CROSS:
+		return L"Cross";
+	case PS4_CIRCLE:
+		return L"Circle";
+	case PS4_TRIANGLE:
+		return L"Triangle";
+	case PS4_SQUARE:
+		return L"Square";
+	case PS4_L1:
+		return L"L1";
+	case PS4_R1:
+		return L"R1";
+	case PS4_L2:
+		return L"L2";
+	case PS4_R2:
+		return L"R2";
+	case PS4_SELECT:
+		return L"Select";
+	case PS4_START:
+		return L"Start";
+	case PS4_L3:
+		return L"L3";
+	case PS4_R3:
+		return L"R3";
+	case PS4_PS:
+		return L"PS";
+	case PS4_TOUCH_PAD:
+		return L"Touch Pad";
+	default:
+		break;
 	}
 	return L"UNKNOWN";
+}
+
+const EXPORT_API int getButtonIndex(int a_Button) {
+	return CommonControllers[joystickType].m_Buttons.m_Buttons[a_Button];
 }
 
 const EXPORT_API char* getDeviceName() {
@@ -231,8 +264,14 @@ const EXPORT_API GUID getDeviceGUID() {
 	return GUID();
 }
 
+const EXPORT_API int getJoystickType() {
+	return joystickType;
+}
+
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
+
+
 
 	//select the first joystick
 	hr = di->CreateDevice(instance->guidInstance, &joystick, NULL);
@@ -240,12 +279,19 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 		return DIENUM_CONTINUE;
 	}
 
+	for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
+		if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
+			joystickType = i;
+			break;
+		}
+	}
+
 	return DIENUM_STOP;
 }
 
 BOOL CALLBACK enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context) {
 	HRESULT hr;
-	HWND hDlg = (HWND) context;
+	HWND hDlg = (HWND)context;
 
 	DIPROPRANGE propRange;
 	propRange.diph.dwSize = sizeof(DIPROPRANGE);
@@ -266,26 +312,26 @@ BOOL CALLBACK enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* 
 float getAxisFromEnum(Axes a_Axis) {
 	float value = 0;
 	switch (a_Axis) {
-		case Axes::LStickX:
-			value = joystickState.lX;
-			break;
-		case Axes::LStickY:
-			value = joystickState.lY;
-			break;
-		case Axes::RStickX:
-			value = joystickState.lZ;
-			break;
-		case Axes::RStickY:
-			value = joystickState.lRz;
-			break;
-		case Axes::LeftTrigger:
-			value = (joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
-			break;
-		case Axes::RightTrigger:
-			value = (joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
-			break;
-		default:
-			return 0.0f;
+	case Axes::LStickX:
+		value = joystickState.lX;
+		break;
+	case Axes::LStickY:
+		value = joystickState.lY;
+		break;
+	case Axes::RStickX:
+		value = joystickState.lZ;
+		break;
+	case Axes::RStickY:
+		value = joystickState.lRz;
+		break;
+	case Axes::LeftTrigger:
+		value = (joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
+		break;
+	case Axes::RightTrigger:
+		value = (joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
+		break;
+	default:
+		return 0.0f;
 	}
 	return value;
 }
