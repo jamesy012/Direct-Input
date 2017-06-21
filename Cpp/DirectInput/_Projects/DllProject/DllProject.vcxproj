@@ -156,6 +156,7 @@ copy /y "$(OutputPath)ControllerInputDll.dll" "$(LocalDebuggerWorkingDirectory)\
     <ClCompile Include="DirectInput.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Controller.h" />
     <ClInclude Include="ControllerMapping.h" />
     <ClInclude Include="DirectInput.h" />
   </ItemGroup>

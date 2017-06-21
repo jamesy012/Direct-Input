@@ -7,6 +7,7 @@
 
 #include <vector>
 
+#include "Controller.h"
 
 //defines
 #if _MSC_VER // this is defined when compiling with Visual Studio
@@ -18,137 +19,33 @@
 #define CALLBACK_FUNC BOOL CALLBACK
 
 //members/constants
-#define MAX_AXES_VALUE 1000
 
-LPDIRECTINPUT8 di;
 
 //todo: move these variables to a struct so we can have more then 1 controller
+//reference to the direct input joystick object
 LPDIRECTINPUTDEVICE8 joystick;
+//data from the controller
 DIJOYSTATE2 joystickState;
+//how many output's does this controller have
 DIDEVCAPS capabilities;
+//information about this device
 DIDEVICEINSTANCEA deviceInfo;
+//which control scheme is this line
 int joystickType = 0;
 
-const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
-
-enum Axes {
-	LStickX,
-	LStickY,
-	RStickX,
-	RStickY,
-	LeftTrigger,
-	RightTrigger
-};
-
-enum Buttons {
-	Cross = 0,
-	A = 0,
-	Circle = 1,
-	B = 1,
-};
-
-struct Controller_Data {
-	const char* m_Name;
-	GUID m_Guid;
-};
-
-//conversion between a controller's values and what they represent on a normal controller
-struct Controller_Buttons {
-	union {
-		struct {
-			union {
-				char m_A;
-				char m_Cross;
-			};
-			union {
-				char m_B;
-				char m_Circle;
-			};
-			union {
-				char m_X;
-				char m_Square;
-			};
-			union {
-				char m_Y;
-				char m_Triangle;
-			};
-			union {
-				char m_LeftBumper;
-				char m_L1;
-			};
-			union {
-				char m_RightBumper;
-				char m_R1;
-			};
-			union {
-				char m_LeftStick;
-				char m_L3;
-			};
-			union {
-				char m_RightStick;
-				char m_R3;
-			};
-			union {
-				char m_1RightStick;
-				char m_1R3;
-				char m_Start;
-			};
-			union {
-				char m_2RightStick;
-				char m_2R3;
-				char m_Select;
-			};
-			char m_TouchPad;
-			//ps button?!
-		};
-		char m_Buttons[32];//32 is from the DIJOYSTATE button array size
-	};
-
-
-	//Controller_Buttons(int* a) {
-	//	memcpy(m_Buttons, a, 32);
-	//}
-
-	Controller_Buttons(std::vector<char> t) {
-		for (int i = 0; i < t.size(); i++) {
-			m_Buttons[i] = t[i];
-		}
-	}
-};
-
-#define MAP_AXES(x) ((int)FIELD_OFFSET(DIJOYSTATE,x))
-#define MAP_BUTTON(x) ((int)FIELD_OFFSET(DIJOYSTATE,rgbButtons) + x)
-struct Controller_Mapping {
-	Controller_Data m_Base;
-
-	//buttons
-	Controller_Buttons m_Buttons;
-
-	//axes
-	//int m_Axes[6];// { MAP_AXES(lX),MAP_AXES(lY),MAP_AXES(lZ),MAP_AXES(lRx),MAP_AXES(lRy),MAP_AXES(lRz) };
-
-	//pov is usually the same
-	//being rgdwPOV[0]
-
-	//Controller_Mapping(Controller_Data a_Cd,int a_NumButtons,int* a_Buttons,int a_NumAxes, int* a_Axes) 
-	//	: m_Base(a_Cd) {
-	//	//copy buttons
-	//	for (int i = 0; i < 13; i++) {
-	//		m_ButtonIndex[i] = a_Buttons[i];
-	//	}
-	//	//copy axes
-	//	for (int i = 0; i < 6; i++) {
-	//		m_Axes[i] = a_Axes[i];
-	//	}
-	//}
-};
 
 /*** FUNCTIONS */
 
 /** non exported functions */
 
+//counts the number of connected joysticks
+CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+//will create a device for all connected joysticks
+//currently just creates them for the first device it finds
 CALLBACK_FUNC enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+//sets up the axes for a joystick
 CALLBACK_FUNC enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context);
+//gets the axis value from Axes enum
 float getAxisFromEnum(Axes a_Axis);
 
 //exported functions
@@ -168,9 +65,9 @@ extern "C" {
 
 	/* BUTTON/AXES */
 
-	//returns a modifyed version based on the joystickType and commonControllers mappings
+	//returns button information based on the controllers mapping index
 	const	EXPORT_API	int			getButton(int a_Index);
-	//returns the normal version of which button has been pressed, based on controller index's
+	//returns button information based on the controllers index
 	const	EXPORT_API	int			getButtonNormal(int a_Index);
 	const	EXPORT_API	int			getAxesValue(int a_Index);
 	const	EXPORT_API	int			getPovValue();

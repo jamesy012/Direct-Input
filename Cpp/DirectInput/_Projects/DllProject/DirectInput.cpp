@@ -3,27 +3,33 @@
 #include "ControllerMapping.h"
 
 #define NUM_OF_COMMON_CONTROLLER_TYPES 3
-//const Controller_Data CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
-//	{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } }
-//	,{ "Gamepad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } }
-//};
-const Controller_Mapping CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
-	Controller_Mapping{
-	/*guid*/	Controller_Data{ "UNKNOWN",GUID{ 0,0,0,{ 0,0,0,0,0,0,0,0 } } },
-	/*buttons*/ Controller_Buttons{ { 0 } },
+//if two controllers use the same mapping then there will be duplicated data :/
+
+//this represents the controller name/guid
+//and which button corresponds to a standardized mapping
+const Controller_Data CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
+	Controller_Data{//this is the default controller
+	/*guid*/	Controller_Info{ "UNKNOWN",GUID{ 0,0,0,{ 0,0,0,0,0,0,0,0 } } },
+	/*buttons*/ Controller_Buttons{ { 0,1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,32,33,34,35 } },
 	///*Axes*/	{ 0,1,2,3,4,5 }
 },
-	Controller_Mapping{
-	/*guid*/	Controller_Data{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } },
-	/*buttons*/ Controller_Buttons{{ PS4_CROSS, PS4_CIRCLE, PS4_SQUARE, PS4_TRIANGLE, PS4_L1, PS4_R1, PS4_SELECT, PS4_START, PS4_L3, PS4_R3, PS4_TOUCH_PAD, 10, 10}},
+	Controller_Data{
+	/*guid*/	Controller_Info{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } },
+	/*buttons*/ Controller_Buttons{{ PS4_CROSS, PS4_CIRCLE, PS4_SQUARE, PS4_TRIANGLE, PS4_L1, PS4_R1,PS4_L3, PS4_R3, PS4_SELECT, PS4_START,PS4_PS, PS4_L2, PS4_R2,PS4_TOUCH_PAD, }},
 	///*Axes*/	{ 0,1,2,3,4,5 }
 	},
-	Controller_Mapping{
-	/*guid*/	Controller_Data{ "Game pad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
+	Controller_Data{
+	/*guid*/	Controller_Info{ "Game pad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
 	/*buttons*/ Controller_Buttons{{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, }},
 	///*Axes*/	2, ps4_axes
 	}
 };
+
+//members/constants
+#define MAX_AXES_VALUE 1000
+
+//this is the direct input object used through out the class
+LPDIRECTINPUT8 di;
 
 
 const EXPORT_API int startInput() {
@@ -268,10 +274,13 @@ const EXPORT_API int getJoystickType() {
 	return joystickType;
 }
 
+CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE * instance, VOID * context) {
+	//todo: enumJoystickCountCallback
+	return DIENUM_STOP;
+}
+
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
-
-
 
 	//select the first joystick
 	hr = di->CreateDevice(instance->guidInstance, &joystick, NULL);

@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "DirectInput.h"
+#include "Controller.h"
 #include "ControllerMapping.h"
 
 int main() {
@@ -44,7 +45,7 @@ int main() {
 		std::cout << "Right Stick X: " << getAxesValue(Axes::RStickX) << std::endl;
 		std::cout << "Right Stick Y: " << getAxesValue(Axes::RStickY) << std::endl;
 
-		std::cout << "Button numbers: (Normal/converted)" << std::endl << "\t";
+		std::cout << "Button numbers: (Normal/Converted)" << std::endl << "\t";
 		for (int i = 0; i < getNumOfButtons(); i++) {
 			if (getButtonNormal(i)) {
 				std::wcout << i << "/" << getButtonIndex(i) << "(" << getButtonName(i) << "/" << getButtonName(getButtonIndex(i)) << ")" << ", ";
@@ -57,7 +58,7 @@ int main() {
 		std::wcout << "Pov Dir: " << getPovName(getPovDir());
 
 
-		if (getButton(PS4_START)) {
+		if (getButton(Buttons::Start)) {
 			loop = false;
 		}
 	}
