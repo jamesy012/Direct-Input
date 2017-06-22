@@ -3,13 +3,25 @@
 #include "ExportHeader.h"
 
 //names of the different hat directions, clockwise
-const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
+const char* hatDirections[] = { "None","Up","Up-Right","Right","Down-Right","Down","Down-Left","Left","Up-Left" };
 
 //const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","LS", "RS","Select","Start","Xbox" };
 //const char* ControlNamesPs4[] = { "Cross", "Circle","Square","Triangle","L1","R1","L3", "R3","Select","Start","Ps", "L2","R2","Touchpad" };
 
 const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","Select","Start","LS", "RS","Xbox" };
 const char* ControlNamesPs4[] = { "Square", "Cross","Circle","Triangle","L1","R1","L2", "R2","Select","Start","L3","R3","Ps","Touchpad" };
+
+enum Pov {
+	None,
+	Up,
+	UpRight,
+	Right,
+	DownRight,
+	Down,
+	DownLeft,
+	Left,
+	UpLeft
+};
 
 enum Axes {
 	LStickX,
@@ -129,7 +141,7 @@ struct Controller_Axis {
 		for (int i = 0; i < a_Axes.size(); i++) {
 			m_Axes[i] = a_Axes[i];
 		}
-		m_SingleTrigger = a_Tt;
+		m_SingleTrigger = !!a_Tt;
 	}
 };
 
@@ -145,6 +157,22 @@ struct Controller_Data {
 	Controller_Axis m_Axes;
 	//int m_Axes[6];// { MAP_AXES(lX),MAP_AXES(lY),MAP_AXES(lZ),MAP_AXES(lRx),MAP_AXES(lRy),MAP_AXES(lRz) };
 };
+
+//all data based around a single controller
+struct Controller {
+	//reference to the direct input joystick object
+	LPDIRECTINPUTDEVICE8 joystick;
+	//data from the controller
+	DIJOYSTATE2 joystickState;
+	//how many output's does this controller have
+	DIDEVCAPS capabilities;
+	//information about this device
+	DIDEVICEINSTANCEA deviceInfo;
+	//which control scheme is this line
+	int joystickType = 0;
+};
+
+
 
 EXPORT_START{
 

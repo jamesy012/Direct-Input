@@ -19,10 +19,16 @@ namespace JInput {
 		[DllImport("ControllerInputDll")]
 		private static extern IntPtr getPovName(int a_Direction);
 
-		[DllImport("ControllerInputDll")]
-		private static extern IntPtr getButtonNameConverted(int a_Button,bool a_IsXbox);
+        [DllImport("ControllerInputDll")]
+        private static extern IntPtr getButtonNameConverted(int a_Button, bool a_IsXbox);
 
-		public static Input m_Input;
+        [DllImport("ControllerInputDll")]
+        private static extern void setCurrentController(int a_CurrentController);
+
+        [DllImport("ControllerInputDll")]
+        private static extern int getNumberOfControllers();
+
+        public static Input m_Input;
 
 		[SerializeField]
 		private List<Controller> m_Controllers = new List<Controller>();
@@ -35,8 +41,11 @@ namespace JInput {
 			}
 			m_Input = this;
 			startInput();
-			m_Controllers.Add(new Controller());//atm only one is available
-            m_Controllers[0].startController();
+            for (int i = 0; i < getNumberOfControllers(); i++) {
+                Controller controller = new Controller();
+                controller.startController(i);
+                m_Controllers.Add(controller);
+            }
 		}
 
 		// Update is called once per frame
@@ -49,14 +58,20 @@ namespace JInput {
 		}
 
 		public Controller getController(int a_Index) {
+            if(a_Index >= m_Controllers.Count || a_Index < 0) {
+                //throw new Exception();
+                return null;
+            }
 			return m_Controllers[a_Index];
 		}
 
 		public static string GetNameFromHatDir(JInput.Controller a_Controller) {
-			return Marshal.PtrToStringAuto(getPovName(a_Controller.data.hatSwitch));
+            setCurrentController(a_Controller.m_ControllerIndex);
+			return Marshal.PtrToStringAnsi(getPovName(a_Controller.data.hatSwitch));
 		}
 		public static string GetNameFromButton(Controller a_Controller, int a_ButtonIndex) {
-			return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex,a_Controller.m_IsXbox));
+            setCurrentController(a_Controller.m_ControllerIndex);
+            return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex,a_Controller.m_IsXbox));
 		}
 	}
 }

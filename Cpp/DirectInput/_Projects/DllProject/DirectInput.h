@@ -15,26 +15,21 @@
 
 //members/constants
 
+//list of all controllers
+std::vector<Controller> m_Controllers;
 
-//todo: move these variables to a struct so we can have more then 1 controller
-//reference to the direct input joystick object
-LPDIRECTINPUTDEVICE8 joystick;
-//data from the controller
-DIJOYSTATE2 joystickState;
-//how many output's does this controller have
-DIDEVCAPS capabilities;
-//information about this device
-DIDEVICEINSTANCEA deviceInfo;
-//which control scheme is this line
-int joystickType = 0;
+Controller* m_LatestController;
+
+HWND m_WindowHandle;
+
+int m_ControllerIndex;
 
 
 /*** FUNCTIONS */
 
 /** non exported functions */
 
-//counts the number of connected joysticks
-CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+
 //will create a device for all connected joysticks
 //currently just creates them for the first device it finds
 CALLBACK_FUNC enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context);
@@ -58,6 +53,12 @@ EXPORT_START {
 	//call this before checking input
 	const	EXPORT_API	int			updateInput();
 
+	/* CONTROLLER */
+
+	const	EXPORT_API	void		setCurrentController(int a_Index);
+	const	EXPORT_API	int			getNumberOfControllers();
+	const	EXPORT_API	bool		isControllerXbox();
+
 	/* BUTTON/AXES */
 
 	//returns button information based on the controllers mapping index
@@ -67,7 +68,7 @@ EXPORT_START {
 	const	EXPORT_API	int			getAxesValue(int a_Index);
 	const	EXPORT_API	int			getPovValue();
 	const	EXPORT_API	int			getPovDir();
-	const	EXPORT_API	wchar_t*	getPovName(int a_Dir);
+	const	EXPORT_API	char*		getPovName(int a_Dir);
 
 	const	EXPORT_API	int			getNumOfButtons();
 	const	EXPORT_API	int			getNumOfAxis();
