@@ -8,7 +8,7 @@
 #define MAX_AXES_VALUE 1000
 
 //this is the direct input object used through out the class
-LPDIRECTINPUT8 di;
+LPDIRECTINPUT8 di = nullptr;
 
 
 const EXPORT_API int startInput() {
@@ -21,16 +21,19 @@ const EXPORT_API int startInput() {
 	if (m_WindowHandle == NULL) {
 		m_WindowHandle = GetConsoleWindow();
 	}
+	if (m_WindowHandle == NULL) {
+		return E_FAIL;
+	}
 
 	hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, NULL);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
-	hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
-	if (FAILED(hr)) {
-		return hr;
-	}
+	//hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
+	//if (FAILED(hr)) {
+	//	return hr;
+	//}
 
 	return S_OK;
 }
@@ -46,36 +49,65 @@ const EXPORT_API void releaseInput() {
 }
 
 const EXPORT_API int updateInput() {
-	HRESULT hr;
+	
 	for (int i = 0; i < m_Controllers.size(); i++) {
-		if (m_Controllers[i].joystick == NULL) {
-			return S_OK;
-		}
-
-		hr = m_Controllers[i].joystick->Poll();
-		if (FAILED(hr)) {
-			//lost connection to the joystick
-
-			do {
-				hr = m_Controllers[i].joystick->Acquire();
-			} while (hr == DIERR_INPUTLOST);
-
-			if (hr == DIERR_INVALIDPARAM || hr == DIERR_NOTINITIALIZED) {
-				return E_FAIL;
-			}
-
-			if (hr == DIERR_OTHERAPPHASPRIO) {
-				return S_OK;
-			}
-		}
-
-		hr = m_Controllers[i].joystick->GetDeviceState(sizeof(DIJOYSTATE2), &m_Controllers[i].joystickState);
-		if (FAILED(hr)) {
-			return hr;
-		}
+		updateInputController(i);
 	}
 
 	return S_OK;
+}
+
+const EXPORT_API int updateInputController(int a_Index) {
+	HRESULT hr;
+	Controller& controller = m_Controllers[a_Index];
+	if (controller.joystick == NULL) {
+		return S_OK;
+	}
+	if (!controller.acquired) {
+		return S_OK;
+	}
+
+	hr = controller.joystick->Poll();
+	if (FAILED(hr)) {
+		//lost connection to the joystick
+
+		//todo: limit on amount of loops, if it fails then remove it from the active list
+		int maxAttempts = 50;
+		do {
+			maxAttempts--;
+			hr = controller.joystick->Acquire();
+		} while (hr == DIERR_INPUTLOST && maxAttempts >= 0);
+
+		if (maxAttempts <= 0 || hr != DIERR_ACQUIRED) {
+			controller.acquired = false;
+		}
+
+		if (hr == DIERR_INVALIDPARAM || hr == DIERR_NOTINITIALIZED) {
+			return E_FAIL;
+		}
+
+		if (hr == DIERR_OTHERAPPHASPRIO) {
+			return S_OK;
+		}
+
+	}
+
+	hr = controller.joystick->GetDeviceState(sizeof(DIJOYSTATE2), &controller.joystickState);
+	if (FAILED(hr)) {
+		return hr;
+	}
+}
+
+const EXPORT_API int updateControllers() {
+	int startNumControllers = m_NumOfControllersFound;
+
+	//go through all controlers finding new ones
+	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
+	if (FAILED(hr)) {
+		return 0;
+	}
+
+	return m_NumOfControllersFound - startNumControllers;
 }
 
 const EXPORT_API void setCurrentController(int a_Index) {
@@ -88,6 +120,10 @@ const EXPORT_API int getNumberOfControllers() {
 
 const EXPORT_API bool isControllerXbox() {
 	return m_Controllers[m_ControllerIndex].joystickType != 1;
+}
+
+const EXPORT_API bool isControllerActive() {
+	return m_Controllers[m_ControllerIndex].acquired;
 }
 
 const EXPORT_API int getButton(int a_Index) {
@@ -206,8 +242,15 @@ CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE * instance, VOID 
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
 
-	Controller thisController;
+	// check to see if this device has been added before
+	for (auto& iter : m_Controllers) {
+		if (iter.second.deviceInfo.guidInstance == instance->guidInstance) {
+			iter.second.acquired = true;
+			return DIENUM_CONTINUE;
+		}
+	}
 
+	Controller thisController;
 	for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
 		if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
 			thisController.joystickType = i;
@@ -230,6 +273,7 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 	}
 
 	m_LatestController = &thisController;
+	thisController.acquired = true;
 
 	thisController.capabilities.dwSize = sizeof(DIDEVCAPS);
 	thisController.deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
@@ -260,8 +304,8 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 		return hr;
 	}
 
-	m_Controllers.push_back(thisController);
-
+	m_Controllers[m_NumOfControllersFound] = thisController;
+	m_NumOfControllersFound++;
 	return DIENUM_CONTINUE;
 }
 

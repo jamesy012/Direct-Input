@@ -17,6 +17,9 @@ namespace JInput {
 		private static extern int updateInput();
 
 		[DllImport("ControllerInputDll")]
+		private static extern int updateControllers();
+
+		[DllImport("ControllerInputDll")]
 		private static extern IntPtr getPovName(int a_Direction);
 
         [DllImport("ControllerInputDll")]
@@ -41,15 +44,12 @@ namespace JInput {
 			}
 			m_Input = this;
 			startInput();
-            for (int i = 0; i < getNumberOfControllers(); i++) {
-                Controller controller = new Controller();
-                controller.startController(i);
-                m_Controllers.Add(controller);
-            }
+			addControllers();
 		}
 
 		// Update is called once per frame
 		void Update() {
+			addControllers();
 			updateInput();
 
 			for (int i = 0; i < m_Controllers.Count; i++) {
@@ -72,6 +72,15 @@ namespace JInput {
 		public static string GetNameFromButton(Controller a_Controller, int a_ButtonIndex) {
             setCurrentController(a_Controller.m_ControllerIndex);
             return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex,a_Controller.m_IsXbox));
+		}
+
+		private void addControllers() {
+			int newControllers = updateControllers();
+			for(int i = 0; i < newControllers; i++) {
+				Controller controller = new Controller();
+				controller.startController(m_Controllers.Count);
+				m_Controllers.Add(controller);
+			}
 		}
 	}
 }

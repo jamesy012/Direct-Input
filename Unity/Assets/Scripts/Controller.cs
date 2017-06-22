@@ -41,10 +41,13 @@ namespace JInput {
         [DllImport("ControllerInputDll")]
         private static extern int getJoystickType();
 
-        [DllImport("ControllerInputDll")]
-        private static extern bool isControllerXbox();
+		[DllImport("ControllerInputDll")]
+		private static extern bool isControllerXbox();
 
-        [DllImport("ControllerInputDll")]
+		[DllImport("ControllerInputDll")]
+		private static extern bool isControllerActive();
+
+		[DllImport("ControllerInputDll")]
         private static extern void setCurrentController(int a_CurrentController);
 
         [SerializeField]
@@ -54,6 +57,7 @@ namespace JInput {
 
         internal bool m_IsXbox = false;
         internal int m_ControllerIndex = 0;
+		internal bool m_IsActive = false;
 
         public void startController(int a_ControllerIndex) {
             m_ControllerIndex = a_ControllerIndex;
@@ -63,6 +67,10 @@ namespace JInput {
 
 		public void updateController() {
             setCurrentController(m_ControllerIndex);
+			m_IsActive = isControllerActive();
+			if (!m_IsActive) {
+				return;
+			}
             for (int i = 0; i < 14; i++) {
 				m_Data.buttons[i] = getButton(i) >= 1;
 			}

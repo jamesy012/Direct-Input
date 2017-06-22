@@ -3,7 +3,8 @@ echo seting up directorys
 set STARTDIR=%CD%
 set CONFIG="Debug"
 set DLLDIR=%CD%"\Cpp\DirectInput\Builds\DllProject\%CONFIG%"
-set VC="E:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
+rem set VC="E:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat"
+set VC="%VS140COMNTOOLS%..\..\VC\vcvarsall.bat"
 set PROJDIR="%STARTDIR%\Cpp\DirectInput\DirectInput.sln"
 
 echo setting up visual studio

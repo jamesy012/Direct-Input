@@ -5,35 +5,18 @@
 #include "Controller.h"
 #include "ControllerMapping.h"
 
+void displayControllerData(int a_Start,int a_NumOfControllers);
+
 int main() {
 	HRESULT hr;
 	hr = startInput();
 	if (FAILED(hr)) {
 		return hr;
 	}
-	for (int controller = 0; controller < getNumberOfControllers(); controller++) {
-		setCurrentController(controller);
-		std::cout << "Device name: " << getDeviceName() << " Known name: " << getKnownDeviceName() << "\nGUID ";
-		GUID guid = getDeviceGUID();
-		std::cout << guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";
-		for (int i = 0; i < 8; i++) {
-			if (i != 0) {
-				std::cout << ", ";
-			}
-			std::cout << (int)guid.Data4[i];
-		}
+	updateControllers();
 
-		std::cout << ")" << std::endl;
+	displayControllerData(0, getNumberOfControllers());
 
-		std::cout << "Number of buttons: " << getNumOfButtons() << std::endl;
-
-		std::cout << "Controller is " << (isControllerXbox() ? "Xbox" : "Ps4") << std::endl;
-
-		std::cout << std::endl;
-	}
-
-
-	system("pause");
 
 	int counter = 0;
 	bool loop = true;
@@ -42,10 +25,20 @@ int main() {
 		if (counter % 10000000 != 0) {
 			continue;
 		}
-		system("cls");
+
+		int newControllers = updateControllers();
+		if (newControllers > 0) {
+			displayControllerData(getNumberOfControllers() - newControllers, newControllers);
+		}
 		updateInput();
+
+		system("cls");
+
 		for (int controller = 0; controller < getNumberOfControllers(); controller++) {
 			setCurrentController(controller);
+			if (!isControllerActive()) {
+				continue;
+			}
 			bool isXbox = isControllerXbox();
 			std::cout << "Left Trigger: " << getAxesValue(Axes::LeftTrigger) << std::endl;
 			std::cout << "Right Trigger: " << getAxesValue(Axes::RightTrigger) << std::endl;
@@ -90,4 +83,31 @@ int main() {
 	releaseInput();
 
 	return 1;
+}
+
+void displayControllerData(int a_Start, int a_NumOfControllers) {
+	system("cls");
+	for (int controller = a_Start; controller < a_Start + a_NumOfControllers; controller++) {
+		setCurrentController(controller);
+		std::cout << "Device name: " << getDeviceName() << " Known name: " << getKnownDeviceName() << "\nGUID ";
+		GUID guid = getDeviceGUID();
+		std::cout << guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";
+		for (int i = 0; i < 8; i++) {
+			if (i != 0) {
+				std::cout << ", ";
+			}
+			std::cout << (int) guid.Data4[i];
+		}
+
+		std::cout << ")" << std::endl;
+
+		std::cout << "Number of buttons: " << getNumOfButtons() << std::endl;
+
+		std::cout << "Controller is " << (isControllerXbox() ? "Xbox" : "Ps4") << std::endl;
+
+		std::cout << std::endl;
+	}
+
+
+	system("pause");
 }

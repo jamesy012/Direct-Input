@@ -1,11 +1,12 @@
 #pragma once
 
+//can probably put a lot of this in the cpp
 
 //includes
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-#include <vector>
+#include <map>
 
 #include "Controller.h"
 #include "ExportHeader.h"
@@ -16,13 +17,16 @@
 //members/constants
 
 //list of all controllers
-std::vector<Controller> m_Controllers;
+//<index,Controller>
+typedef std::map<int, Controller> ControllerMapType;
+ControllerMapType m_Controllers;
+int m_NumOfControllersFound = 0;
 
-Controller* m_LatestController;
+Controller* m_LatestController = nullptr;
 
-HWND m_WindowHandle;
+HWND m_WindowHandle = NULL;
 
-int m_ControllerIndex;
+int m_ControllerIndex = 0;
 
 
 /*** FUNCTIONS */
@@ -38,6 +42,8 @@ CALLBACK_FUNC enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* 
 //gets the axis value from Axes enum
 float getAxisFromEnum(Axes a_Axis);
 
+
+
 //exported functions
 
 // Link following functions C-style (required for plugins)
@@ -46,18 +52,25 @@ EXPORT_START {
 	/* INPUT */
 
 	//run this at the start of the program to start up the input manager
+	//returns HRESULT from dInput calls
 	const	EXPORT_API	int			startInput();
 	//run this when closing the program to release the memory
 	const	EXPORT_API	void		releaseInput();
 	//this polls every connected joystick for updated information
 	//call this before checking input
+	//returns HRESULT from dInput calls
 	const	EXPORT_API	int			updateInput();
+	const	EXPORT_API	int			updateInputController(int a_Index);
+	//checks to see if there are any controllers that are connected, but haven't been checked yet
+	//returns number of newly connected controllers
+	const	EXPORT_API	int			updateControllers();
 
 	/* CONTROLLER */
 
 	const	EXPORT_API	void		setCurrentController(int a_Index);
 	const	EXPORT_API	int			getNumberOfControllers();
 	const	EXPORT_API	bool		isControllerXbox();
+	const	EXPORT_API	bool		isControllerActive();
 
 	/* BUTTON/AXES */
 

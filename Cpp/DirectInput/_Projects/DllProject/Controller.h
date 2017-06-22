@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "ExportHeader.h"
 
 //names of the different hat directions, clockwise
@@ -49,12 +50,16 @@ enum Buttons {
 	Y = 3,
 	L1 = 4,
 	LB = 4,
+	LeftBumper = 4,
 	R1 = 5,
 	RB = 5,
+	RightBumper = 5,
 	L3 = 6,
 	LS = 6,
+	LeftStick = 6,
 	R3 = 7,
 	RS = 7,
+	RightStick = 7,
 	Select = 8,
 	Start = 9,
 	Home = 10,
@@ -170,6 +175,9 @@ struct Controller {
 	DIDEVICEINSTANCEA deviceInfo;
 	//which control scheme is this line
 	int joystickType = 0;
+
+	//is this controller currently acquired
+	bool acquired = false;
 };
 
 

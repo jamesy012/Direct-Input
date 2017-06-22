@@ -1,8 +1,9 @@
 #pragma once
 
-#define NUM_OF_COMMON_CONTROLLER_TYPES 4
+#define NUM_OF_COMMON_CONTROLLER_TYPES 5
 //if two controllers use the same mapping then there will be duplicated data :/
 //might change is so they reference their buttons and axis instead of having the same data for each controller
+//Note: for the same controller the GUID was different between computers. might have to change to a name/string compare
 
 //this represents the controller name/guid
 //and which button corresponds to a standardized mapping
@@ -24,6 +25,11 @@ Controller_Data{
 },
 Controller_Data{
 	/*guid*/	Controller_Info{ "Xbox one controller", GUID{ 47252574,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
+	/*buttons*/ Controller_Buttons{ { 0, 1, 2, 3, 4, 5, 8, 9, 6, 7, } },
+	/*Axes*/	Controller_Axis{ { Axes::LStickX,Axes::LStickY,Axes::LeftTrigger,Axes::RightTrigger,Axes::RStickX,Axes::RStickX },TriggerType::One }
+},
+Controller_Data{
+	/*guid*/	Controller_Info{ "Xbox one controller", GUID{ 50267230,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
 	/*buttons*/ Controller_Buttons{ { 0, 1, 2, 3, 4, 5, 8, 9, 6, 7, } },
 	/*Axes*/	Controller_Axis{ { Axes::LStickX,Axes::LStickY,Axes::LeftTrigger,Axes::RightTrigger,Axes::RStickX,Axes::RStickX },TriggerType::One }
 },
