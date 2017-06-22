@@ -14,3 +14,8 @@ Cpp/DirectInput/DirectInput.VC.opendb
 Cpp/DirectInput/_WorkingDir/ControllerInputDll.dll
 Cpp/DirectInput/_WorkingDir/DirectInputTest.zip
 Cpp/DirectInput/_WorkingDir/DirectInputTest_Win32.exe
+
+Unity/Unity.csproj
+Cpp/DirectInput/DirectInput.VC.db
+Cpp/DirectInput/DirectInput.VC.VC.opendb
+Unity/Unity.sln

@@ -35,15 +35,22 @@ namespace JInput {
 		[DllImport("ControllerInputDll")]
 		private static extern int getPovValue();
 
-		[DllImport("ControllerInputDll")]
-		private static extern int getPovDir();
+        [DllImport("ControllerInputDll")]
+        private static extern int getPovDir();
 
+        [DllImport("ControllerInputDll")]
+        private static extern int getJoystickType();
 
-
-		[SerializeField]
+        [SerializeField]
 		private ControllerData m_Data = new ControllerData();
 
 		public ControllerData data { get { return m_Data; } }
+
+        internal bool m_IsXbox = false;
+
+        public void startController() {
+            m_IsXbox = getJoystickType() != 1;
+        }
 
 		public void updateController() {
 			for (int i = 0; i < 14; i++) {

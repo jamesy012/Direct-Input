@@ -4,6 +4,7 @@
 
 #define NUM_OF_COMMON_CONTROLLER_TYPES 4
 //if two controllers use the same mapping then there will be duplicated data :/
+//might change is so
 
 //this represents the controller name/guid
 //and which button corresponds to a standardized mapping
@@ -11,22 +12,22 @@ const Controller_Data CommonControllers[NUM_OF_COMMON_CONTROLLER_TYPES] = {
 	Controller_Data{//this is the default controller
 	/*guid*/	Controller_Info{ "UNKNOWN",GUID{ 0,0,0,{ 0,0,0,0,0,0,0,0 } } },
 	/*buttons*/ Controller_Buttons{ { 0,1,2,3,4,5,6,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,32,33,34,35 } },
-	///*Axes*/	{ 0,1,2,3,4,5 }
+	/*Axes*/	Controller_Axis{ { Axes::LStickX,Axes::LStickY,Axes::RStickX,Axes::RStickY,Axes::LeftTrigger },TriggerType::Two }
 	},
 	Controller_Data{
 	/*guid*/	Controller_Info{ "PS4 Controller",GUID{ 96732492,0,0,{ 0,0,80,73,68,86,73,68 } } },
 	/*buttons*/ Controller_Buttons{{ 1, 2, 0, 3, PS4_L1, PS4_R1,PS4_L3, PS4_R3, PS4_SELECT, PS4_START,PS4_PS, PS4_L2, PS4_R2,PS4_TOUCH_PAD, }},
-	///*Axes*/	{ 0,1,2,3,4,5 }
+	/*Axes*/	Controller_Axis{ {Axes::LStickX,Axes::LStickY,Axes::RStickX,Axes::RStickY,Axes::LeftTrigger,Axes::RightTrigger},TriggerType::Two }
 	},
 	Controller_Data{
 	/*guid*/	Controller_Info{ "Game pad F310", GUID{ 3256681581,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
 	/*buttons*/ Controller_Buttons{ { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, } },
-	///*Axes*/	2, ps4_axes
+	/*Axes*/	Controller_Axis{ { Axes::LStickX,Axes::LStickY,Axes::LeftTrigger,Axes::RightTrigger,Axes::LStickX },TriggerType::One }
 	},
 	Controller_Data{
 	/*guid*/	Controller_Info{ "Xbox one controller", GUID{ 47252574,0,0,{ 0, 0, 80, 73, 68, 86, 73, 68 } } },
 	/*buttons*/ Controller_Buttons{ { 0, 1, 2, 3, 4, 5, 8, 9, 6, 7, } },
-	///*Axes*/	2, ps4_axes
+	/*Axes*/	Controller_Axis{ { Axes::LStickX,Axes::LStickY,Axes::LeftTrigger,Axes::RightTrigger,Axes::RStickX,Axes::RStickX },TriggerType::One }
 	},
 };
 
@@ -167,7 +168,8 @@ const EXPORT_API int getButtonNormal(int a_Index) {
 
 const EXPORT_API int getAxesValue(int a_Index) {
 	if (joystick) {
-		return getAxisFromEnum((Axes)a_Index);
+		Axes index = CommonControllers[joystickType].m_Axes.m_Axes[a_Index];
+		return getAxisFromEnum(index);
 	}
 	return 0;
 }
@@ -221,44 +223,12 @@ const EXPORT_API int getNumOfPov() {
 	return 0;
 }
 
-const EXPORT_API wchar_t * getButtonName(int a_Button) {
-	switch (a_Button) {
-	case PS4_CROSS:
-		return L"Cross";
-	case PS4_CIRCLE:
-		return L"Circle";
-	case PS4_TRIANGLE:
-		return L"Triangle";
-	case PS4_SQUARE:
-		return L"Square";
-	case PS4_L1:
-		return L"L1";
-	case PS4_R1:
-		return L"R1";
-	case PS4_L2:
-		return L"L2";
-	case PS4_R2:
-		return L"R2";
-	case PS4_SELECT:
-		return L"Select";
-	case PS4_START:
-		return L"Start";
-	case PS4_L3:
-		return L"L3";
-	case PS4_R3:
-		return L"R3";
-	case PS4_PS:
-		return L"PS";
-	case PS4_TOUCH_PAD:
-		return L"Touch Pad";
-	default:
-		break;
-	}
-	return L"UNKNOWN";
-}
-
 const EXPORT_API int getButtonIndex(int a_Button) {
 	return CommonControllers[joystickType].m_Buttons.m_Buttons[a_Button];
+}
+
+const EXPORT_API char* getButtonNameConverted(int a_Button,bool a_IsXbox) {
+	return getButtonName(getButtonIndex(a_Button),a_IsXbox);
 }
 
 const EXPORT_API char* getDeviceName() {
@@ -298,9 +268,9 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 		}
 	}
 	//only allow ps4 controllers
-	if (joystickType != 1) {
-		return DIENUM_CONTINUE;
-	}
+	//if (joystickType != 1) {
+	//	return DIENUM_CONTINUE;
+	//}
 
 	//select the first joystick
 	hr = di->CreateDevice(instance->guidInstance, &joystick, NULL);
@@ -348,11 +318,17 @@ float getAxisFromEnum(Axes a_Axis) {
 	case Axes::RStickY:
 		value = joystickState.lRz;
 		break;
+	//case Axes::LeftTrigger:
+	//	value = (joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
+	//	break;
+	//case Axes::RightTrigger:
+	//	value = (joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
+	//	break;
 	case Axes::LeftTrigger:
-		value = (joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
+		value = joystickState.lRx;
 		break;
 	case Axes::RightTrigger:
-		value = (joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
+		value = joystickState.lRy;
 		break;
 	default:
 		return 0.0f;

@@ -20,7 +20,7 @@ namespace JInput {
 		private static extern IntPtr getPovName(int a_Direction);
 
 		[DllImport("ControllerInputDll")]
-		private static extern IntPtr getButtonName(int a_Button);
+		private static extern IntPtr getButtonNameConverted(int a_Button,bool a_IsXbox);
 
 		public static Input m_Input;
 
@@ -36,6 +36,7 @@ namespace JInput {
 			m_Input = this;
 			startInput();
 			m_Controllers.Add(new Controller());//atm only one is available
+            m_Controllers[0].startController();
 		}
 
 		// Update is called once per frame
@@ -54,8 +55,8 @@ namespace JInput {
 		public static string GetNameFromHatDir(JInput.Controller a_Controller) {
 			return Marshal.PtrToStringAuto(getPovName(a_Controller.data.hatSwitch));
 		}
-		public static string GetNameFromButton(int a_ButtonIndex) {
-			return Marshal.PtrToStringAuto(getButtonName(a_ButtonIndex));
+		public static string GetNameFromButton(Controller a_Controller, int a_ButtonIndex) {
+			return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex,a_Controller.m_IsXbox));
 		}
 	}
 }

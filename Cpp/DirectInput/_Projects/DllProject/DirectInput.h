@@ -8,14 +8,9 @@
 #include <vector>
 
 #include "Controller.h"
+#include "ExportHeader.h"
 
 //defines
-#if _MSC_VER // this is defined when compiling with Visual Studio
-#define EXPORT_API __declspec(dllexport) // Visual Studio needs annotating exported functions with this
-#else
-#define EXPORT_API // XCode does not need annotating exported functions, so define is empty
-#endif
-
 #define CALLBACK_FUNC BOOL CALLBACK
 
 //members/constants
@@ -51,7 +46,7 @@ float getAxisFromEnum(Axes a_Axis);
 //exported functions
 
 // Link following functions C-style (required for plugins)
-extern "C" {
+EXPORT_START {
 
 	/* INPUT */
 
@@ -78,9 +73,8 @@ extern "C" {
 	const	EXPORT_API	int			getNumOfAxis();
 	const	EXPORT_API	int			getNumOfPov();
 
-	const	EXPORT_API	wchar_t*	getButtonName(int a_Button);
 	const	EXPORT_API	int			getButtonIndex(int a_Button);
-
+	const	EXPORT_API	char*		getButtonNameConverted(int a_Button, bool a_IsXbox);
 
 	/* DEVICE INFORMATION */
 
@@ -89,4 +83,5 @@ extern "C" {
 
 	const	EXPORT_API	int			getJoystickType();
 	const	EXPORT_API	char*		getKnownDeviceName();
+
 } // end of export C block

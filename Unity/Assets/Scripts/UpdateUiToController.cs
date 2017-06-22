@@ -76,7 +76,7 @@ public class UpdateUiToController : MonoBehaviour {
 					buttonsDown += ", ";
 				}
 				buttons++;
-				buttonsDown += JInput.Input.GetNameFromButton(i);
+				buttonsDown += JInput.Input.GetNameFromButton(m_Controller,i);
 			}
 		}
 		m_ButtonText.text = buttonsDown;

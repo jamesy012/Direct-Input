@@ -1,14 +1,15 @@
 #pragma once
 
+#include "ExportHeader.h"
+
 //names of the different hat directions, clockwise
 const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
 
-//these are listed in their usual location
 //const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","LS", "RS","Select","Start","Xbox" };
 //const char* ControlNamesPs4[] = { "Cross", "Circle","Square","Triangle","L1","R1","L3", "R3","Select","Start","Ps", "L2","R2","Touchpad" };
 
 const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","Select","Start","LS", "RS","Xbox" };
-const char* ControlNamesPs4[] = { "Square", "Cross","Circle","Triangle","L1","R1","L2", "R2","Select","Start","L3","R3","Ps","Touchpad"};
+const char* ControlNamesPs4[] = { "Square", "Cross","Circle","Triangle","L1","R1","L2", "R2","Select","Start","L3","R3","Ps","Touchpad" };
 
 enum Axes {
 	LStickX,
@@ -18,6 +19,11 @@ enum Axes {
 	//Left and Right Trigger can be the same
 	LeftTrigger,
 	RightTrigger
+};
+
+enum TriggerType {
+	One,
+	Two
 };
 
 enum Buttons {
@@ -103,7 +109,28 @@ struct Controller_Buttons {
 		return m_Buttons[a_Button];
 	}
 
+};
 
+struct Controller_Axis {
+	union {
+		struct {
+			Axes m_LeftStickX;
+			Axes m_LeftStickY;
+			Axes m_RightStickX;
+			Axes m_RightStickY;
+			Axes m_LeftTrigger;
+			Axes m_RightTrigger;
+		};
+		Axes m_Axes[6];
+	};
+	bool m_SingleTrigger = true;
+
+	Controller_Axis(std::vector<Axes> a_Axes, TriggerType a_Tt) {
+		for (int i = 0; i < a_Axes.size(); i++) {
+			m_Axes[i] = a_Axes[i];
+		}
+		m_SingleTrigger = a_Tt;
+	}
 };
 
 #define MAP_AXES(x) ((int)FIELD_OFFSET(DIJOYSTATE,x))
@@ -115,13 +142,18 @@ struct Controller_Data {
 	Controller_Buttons m_Buttons;
 
 	//axes
+	Controller_Axis m_Axes;
 	//int m_Axes[6];// { MAP_AXES(lX),MAP_AXES(lY),MAP_AXES(lZ),MAP_AXES(lRx),MAP_AXES(lRy),MAP_AXES(lRz) };
 };
 
-const char* getName(int a_Index, bool a_XboxControls) {
-	if (a_XboxControls) {
-		return ControlNamesXbox[a_Index];
-	} else {
-		return ControlNamesPs4[a_Index];
+EXPORT_START{
+
+	const EXPORT_API char* getButtonName(int a_Index, bool a_XboxControls) {
+		if (a_XboxControls) {
+			return ControlNamesXbox[a_Index];
+		} else {
+			return ControlNamesPs4[a_Index];
+		}
 	}
+
 }

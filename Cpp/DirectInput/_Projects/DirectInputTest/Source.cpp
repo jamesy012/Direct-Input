@@ -51,10 +51,9 @@ int main() {
 		for (int i = 0; i < getNumOfButtons(); i++) {
 			if (getButton(i)) {
 				std::wcout << getButtonIndex(i) << "/" << i << "(";
-				std::wcout << getName(getButtonIndex(i), isXbox) << "/" << getName(i, isXbox) << ")" << ", ";
+				std::wcout << getButtonNameConverted(i,isXbox) << "/" << getButtonName(i, isXbox) << ")" << ", ";
 			}
 		}
-
 
 		std::cout << std::endl;
 
