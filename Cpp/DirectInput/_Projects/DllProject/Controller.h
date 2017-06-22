@@ -3,6 +3,13 @@
 //names of the different hat directions, clockwise
 const wchar_t* hatDirections[] = { L"None",L"Up",L"Up-Right",L"Right",L"Down-Right",L"Down",L"Down-Left",L"Left",L"Up-Left" };
 
+//these are listed in their usual location
+//const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","LS", "RS","Select","Start","Xbox" };
+//const char* ControlNamesPs4[] = { "Cross", "Circle","Square","Triangle","L1","R1","L3", "R3","Select","Start","Ps", "L2","R2","Touchpad" };
+
+const char* ControlNamesXbox[] = { "A", "B","X","Y","LB","RB","Select","Start","LS", "RS","Xbox" };
+const char* ControlNamesPs4[] = { "Square", "Cross","Circle","Triangle","L1","R1","L2", "R2","Select","Start","L3","R3","Ps","Touchpad"};
+
 enum Axes {
 	LStickX,
 	LStickY,
@@ -95,6 +102,8 @@ struct Controller_Buttons {
 	char getButtonIndex(Buttons a_Button) {
 		return m_Buttons[a_Button];
 	}
+
+
 };
 
 #define MAP_AXES(x) ((int)FIELD_OFFSET(DIJOYSTATE,x))
@@ -108,3 +117,11 @@ struct Controller_Data {
 	//axes
 	//int m_Axes[6];// { MAP_AXES(lX),MAP_AXES(lY),MAP_AXES(lZ),MAP_AXES(lRx),MAP_AXES(lRy),MAP_AXES(lRz) };
 };
+
+const char* getName(int a_Index, bool a_XboxControls) {
+	if (a_XboxControls) {
+		return ControlNamesXbox[a_Index];
+	} else {
+		return ControlNamesPs4[a_Index];
+	}
+}

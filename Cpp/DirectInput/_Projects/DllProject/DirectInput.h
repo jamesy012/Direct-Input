@@ -88,4 +88,5 @@ extern "C" {
 	const	EXPORT_API	GUID		getDeviceGUID();
 
 	const	EXPORT_API	int			getJoystickType();
+	const	EXPORT_API	char*		getKnownDeviceName();
 } // end of export C block

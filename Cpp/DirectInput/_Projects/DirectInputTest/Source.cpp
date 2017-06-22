@@ -12,7 +12,7 @@ int main() {
 		return hr;
 	}
 
-	std::cout << "Device name: " << getDeviceName() << " Known name: "  << "\nGUID ";
+	std::cout << "Device name: " << getDeviceName() << " Known name: " << getKnownDeviceName() << "\nGUID ";
 	GUID guid = getDeviceGUID();
 	std::cout << guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";
 	for (int i = 0; i < 8; i++) {
@@ -25,6 +25,8 @@ int main() {
 	std::cout << ")" << std::endl;
 
 	std::cout << "Number of buttons: " << getNumOfButtons() << std::endl;
+
+	bool isXbox = getJoystickType() != 1;
 
 	system("pause");
 
@@ -45,10 +47,11 @@ int main() {
 		std::cout << "Right Stick X: " << getAxesValue(Axes::RStickX) << std::endl;
 		std::cout << "Right Stick Y: " << getAxesValue(Axes::RStickY) << std::endl;
 
-		std::cout << "Button numbers: (Normal/Converted)" << std::endl << "\t";
+		std::cout << "Button numbers: (Converted/Normal)" << std::endl << "\t";
 		for (int i = 0; i < getNumOfButtons(); i++) {
-			if (getButtonNormal(i)) {
-				std::wcout << i << "/" << getButtonIndex(i) << "(" << getButtonName(i) << "/" << getButtonName(getButtonIndex(i)) << ")" << ", ";
+			if (getButton(i)) {
+				std::wcout << getButtonIndex(i) << "/" << i << "(";
+				std::wcout << getName(getButtonIndex(i), isXbox) << "/" << getName(i, isXbox) << ")" << ", ";
 			}
 		}
 
