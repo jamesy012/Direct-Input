@@ -21,6 +21,7 @@ public class UpdateUiToController : MonoBehaviour {
 	public Text m_ButtonText;
 
     //public JInput.Controller m_Controller;
+    [Range(0,16)]
     public int m_ControllerIndex;
 
     // Use this for initialization

@@ -43,8 +43,8 @@ namespace JInput {
 				return;
 			}
 			m_Input = this;
-			startInput();
-			addControllers();
+			int start = startInput();
+            addControllers();
 		}
 
 		// Update is called once per frame
@@ -82,5 +82,9 @@ namespace JInput {
 				m_Controllers.Add(controller);
 			}
 		}
-	}
+
+        private void OnDestroy() {
+            releaseInput();
+        }
+    }
 }

@@ -1,4 +1,8 @@
 
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+
 #include <iostream>
 
 #include "DirectInput.h"
@@ -8,6 +12,7 @@
 void displayControllerData(int a_Start,int a_NumOfControllers);
 
 int main() {
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	HRESULT hr;
 	hr = startInput();
 	if (FAILED(hr)) {
@@ -15,7 +20,7 @@ int main() {
 	}
 	updateControllers();
 
-	displayControllerData(0, getNumberOfControllers());
+	//displayControllerData(0, getNumberOfControllers());
 
 
 	int counter = 0;
@@ -81,7 +86,7 @@ int main() {
 	}
 
 	releaseInput();
-
+	_CrtDumpMemoryLeaks();
 	return 1;
 }
 

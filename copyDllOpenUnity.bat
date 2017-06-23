@@ -20,8 +20,8 @@ echo building 64 Bit project
 devenv %PROJDIR% /build "Debug|x64"
 
 echo copying dll's
-copy %DLLDIR%\Win32\ControllerInputDll.dll "%STARTDIR%\Unity\Assets\Plugins\DirectInput\32"
-copy %DLLDIR%\x64\ControllerInputDll.dll "%STARTDIR%\Unity\Assets\Plugins\DirectInput\64"
+copy %DLLDIR%\Win32\ControllerInputDll.dll "%STARTDIR%\Unity\Assets\JInput\Plugins\DirectInput\32"
+copy %DLLDIR%\x64\ControllerInputDll.dll "%STARTDIR%\Unity\Assets\JInput\Plugins\DirectInput\64"
 
 
 echo opening unity

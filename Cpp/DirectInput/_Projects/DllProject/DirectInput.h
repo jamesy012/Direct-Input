@@ -6,7 +6,7 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-#include <map>
+#include <vector>
 
 #include "Controller.h"
 #include "ExportHeader.h"
@@ -17,9 +17,7 @@
 //members/constants
 
 //list of all controllers
-//<index,Controller>
-typedef std::map<int, Controller> ControllerMapType;
-ControllerMapType m_Controllers;
+std::vector<Controller*> m_Controllers;
 int m_NumOfControllersFound = 0;
 
 Controller* m_LatestController = nullptr;
@@ -33,7 +31,9 @@ int m_ControllerIndex = 0;
 
 /** non exported functions */
 
-
+//will create a device for all connected joysticks
+//currently just creates them for the first device it finds
+CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* context);
 //will create a device for all connected joysticks
 //currently just creates them for the first device it finds
 CALLBACK_FUNC enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context);

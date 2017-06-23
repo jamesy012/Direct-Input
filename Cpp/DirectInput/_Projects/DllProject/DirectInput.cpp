@@ -17,7 +17,9 @@ const EXPORT_API int startInput() {
 	}
 
 	HRESULT hr;
-	m_WindowHandle = GetActiveWindow();
+	if (m_WindowHandle == NULL) {
+		m_WindowHandle = GetActiveWindow();
+	}
 	if (m_WindowHandle == NULL) {
 		m_WindowHandle = GetConsoleWindow();
 	}
@@ -39,17 +41,27 @@ const EXPORT_API int startInput() {
 }
 
 const EXPORT_API void releaseInput() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		m_Controllers[m_ControllerIndex].joystick->Unacquire();
-		m_Controllers[m_ControllerIndex].joystick->Release();
-		m_Controllers[m_ControllerIndex].joystick = nullptr;
+	for (int i = 0; i < m_Controllers.size(); i++) {
+		if (m_Controllers[i]->joystick) {
+			m_Controllers[i]->joystick->Unacquire();
+			m_Controllers[i]->joystick->Release();
+			delete m_Controllers[i];
+			//m_Controllers[i]->joystick = nullptr;
+		}
 	}
+
+	m_Controllers.clear();
+
 	di->Release();
 	di = nullptr;
+
+	m_NumOfControllersFound = 0;
+	m_ControllerIndex = 0;
+	m_LatestController = nullptr;
 }
 
 const EXPORT_API int updateInput() {
-	
+
 	for (int i = 0; i < m_Controllers.size(); i++) {
 		updateInputController(i);
 	}
@@ -59,27 +71,29 @@ const EXPORT_API int updateInput() {
 
 const EXPORT_API int updateInputController(int a_Index) {
 	HRESULT hr;
-	Controller& controller = m_Controllers[a_Index];
-	if (controller.joystick == NULL) {
+	Controller* controller = m_Controllers[a_Index];
+	if (controller->joystick == NULL) {
 		return S_OK;
 	}
-	if (!controller.acquired) {
+	if (!controller->acquired) {
 		return S_OK;
 	}
 
-	hr = controller.joystick->Poll();
+	hr = controller->joystick->Poll();
 	if (FAILED(hr)) {
 		//lost connection to the joystick
 
-		//todo: limit on amount of loops, if it fails then remove it from the active list
 		int maxAttempts = 50;
 		do {
 			maxAttempts--;
-			hr = controller.joystick->Acquire();
+			hr = controller->joystick->Acquire();
 		} while (hr == DIERR_INPUTLOST && maxAttempts >= 0);
 
 		if (maxAttempts <= 0 || hr != DIERR_ACQUIRED) {
-			controller.acquired = false;
+			controller->acquired = false;
+		}
+		if (hr == S_OK) {
+			controller->acquired = true;
 		}
 
 		if (hr == DIERR_INVALIDPARAM || hr == DIERR_NOTINITIALIZED) {
@@ -89,10 +103,10 @@ const EXPORT_API int updateInputController(int a_Index) {
 		if (hr == DIERR_OTHERAPPHASPRIO) {
 			return S_OK;
 		}
-
+		//controller.acquired = true;
 	}
 
-	hr = controller.joystick->GetDeviceState(sizeof(DIJOYSTATE2), &controller.joystickState);
+	hr = controller->joystick->GetDeviceState(sizeof(DIJOYSTATE2), &controller->joystickState);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -101,13 +115,31 @@ const EXPORT_API int updateInputController(int a_Index) {
 const EXPORT_API int updateControllers() {
 	int startNumControllers = m_NumOfControllersFound;
 
-	//go through all controlers finding new ones
-	HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
-	if (FAILED(hr)) {
-		return 0;
+	m_NumOfControllersFound = 0;
+	di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickCountCallback, NULL, DIEDFL_ATTACHEDONLY);
+
+	int newControllerCount = m_NumOfControllersFound - startNumControllers;
+
+	//if there was a new controller, when a controller is lost it is handled by the input poll
+	if (newControllerCount >= 1) {
+		//release all controllers
+		for (int i = 0; i < m_Controllers.size(); i++) {
+			if (m_Controllers[i]->joystick != nullptr) {
+				m_Controllers[i]->joystick->Unacquire();
+				m_Controllers[i]->joystick->Release();
+				m_Controllers[i]->joystick = nullptr;
+				m_Controllers[i]->acquired = false;
+			}
+		}
+
+		//go through all controllers
+		HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
+		if (FAILED(hr)) {
+			return 0;
+		}
 	}
 
-	return m_NumOfControllersFound - startNumControllers;
+	return newControllerCount;
 }
 
 const EXPORT_API void setCurrentController(int a_Index) {
@@ -119,54 +151,54 @@ const EXPORT_API int getNumberOfControllers() {
 }
 
 const EXPORT_API bool isControllerXbox() {
-	return m_Controllers[m_ControllerIndex].joystickType != 1;
+	return m_Controllers[m_ControllerIndex]->joystickType != 1;
 }
 
 const EXPORT_API bool isControllerActive() {
-	return m_Controllers[m_ControllerIndex].acquired;
+	return m_Controllers[m_ControllerIndex]->acquired;
 }
 
 const EXPORT_API int getButton(int a_Index) {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		if (a_Index >= m_Controllers[m_ControllerIndex].capabilities.dwButtons || a_Index <= -1) {
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		if (a_Index >= m_Controllers[m_ControllerIndex]->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
 		int index = getButtonIndex(a_Index);
-		return m_Controllers[m_ControllerIndex].joystickState.rgbButtons[index];
+		return m_Controllers[m_ControllerIndex]->joystickState.rgbButtons[index];
 	}
 	return 0;
 }
 
 const EXPORT_API int getButtonNormal(int a_Index) {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		if (a_Index >= m_Controllers[m_ControllerIndex].capabilities.dwButtons || a_Index <= -1) {
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		if (a_Index >= m_Controllers[m_ControllerIndex]->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
-		return m_Controllers[m_ControllerIndex].joystickState.rgbButtons[a_Index];
+		return m_Controllers[m_ControllerIndex]->joystickState.rgbButtons[a_Index];
 	}
 	return 0;
 }
 
 const EXPORT_API int getAxesValue(int a_Index) {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		Axes index = CommonControllers[m_Controllers[m_ControllerIndex].joystickType].m_Axes.m_Axes[a_Index];
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		Axes index = CommonControllers[m_Controllers[m_ControllerIndex]->joystickType].m_Axes.m_Axes[a_Index];
 		return getAxisFromEnum(index);
 	}
 	return 0;
 }
 
 const EXPORT_API int getPovValue() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].joystickState.rgdwPOV[0];
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->joystickState.rgdwPOV[0];
 	}
 	return 0;
 }
 
 const EXPORT_API int getPovDir() {
 	int hat = 0;
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		hat = ((int)m_Controllers[m_ControllerIndex].joystickState.rgdwPOV[0] / 4500) + 1;
-		if (m_Controllers[m_ControllerIndex].joystickState.rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		hat = ((int)m_Controllers[m_ControllerIndex]->joystickState.rgdwPOV[0] / 4500) + 1;
+		if (m_Controllers[m_ControllerIndex]->joystickState.rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
 			hat = 0;
 		}
 	}
@@ -174,7 +206,7 @@ const EXPORT_API int getPovDir() {
 }
 
 const EXPORT_API char* getPovName(int a_Dir) {
-	if (m_Controllers[m_ControllerIndex].joystick) {
+	if (m_Controllers[m_ControllerIndex]->joystick) {
 		if (a_Dir >= 9 || a_Dir <= -1) {
 			a_Dir = 0;
 		}
@@ -184,128 +216,150 @@ const EXPORT_API char* getPovName(int a_Dir) {
 }
 
 const EXPORT_API int getNumOfButtons() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].capabilities.dwButtons;
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->capabilities.dwButtons;
 	}
 	return 0;
 }
 
 const EXPORT_API int getNumOfAxis() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].capabilities.dwAxes;
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->capabilities.dwAxes;
 	}
 	return 0;
 }
 
 const EXPORT_API int getNumOfPov() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].capabilities.dwPOVs;
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->capabilities.dwPOVs;
 	}
 	return 0;
 }
 
 const EXPORT_API int getButtonIndex(int a_Button) {
-	return CommonControllers[m_Controllers[m_ControllerIndex].joystickType].m_Buttons.m_Buttons[a_Button];
+	return CommonControllers[m_Controllers[m_ControllerIndex]->joystickType].m_Buttons.m_Buttons[a_Button];
 }
 
-const EXPORT_API char* getButtonNameConverted(int a_Button,bool a_IsXbox) {
-	return getButtonName(getButtonIndex(a_Button),a_IsXbox);
+const EXPORT_API char* getButtonNameConverted(int a_Button, bool a_IsXbox) {
+	return getButtonName(getButtonIndex(a_Button), a_IsXbox);
 }
 
 const EXPORT_API char* getDeviceName() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].deviceInfo.tszProductName;
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->deviceInfo.tszProductName;
 	}
 	return "";
 }
 
 const EXPORT_API GUID getDeviceGUID() {
-	if (m_Controllers[m_ControllerIndex].joystick) {
-		return m_Controllers[m_ControllerIndex].deviceInfo.guidProduct;
+	if (m_Controllers[m_ControllerIndex]->joystick) {
+		return m_Controllers[m_ControllerIndex]->deviceInfo.guidProduct;
 	}
 	return GUID();
 }
 
 const EXPORT_API int getJoystickType() {
-	return m_Controllers[m_ControllerIndex].joystickType;
+	return m_Controllers[m_ControllerIndex]->joystickType;
 }
 
 const EXPORT_API char * getKnownDeviceName() {
-	return CommonControllers[m_Controllers[m_ControllerIndex].joystickType].m_Base.m_Name;
+	return CommonControllers[m_Controllers[m_ControllerIndex]->joystickType].m_Base.m_Name;
 }
 
 CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE * instance, VOID * context) {
-	//todo: enumJoystickCountCallback
-	return DIENUM_STOP;
+	m_NumOfControllersFound++;
+	return DIENUM_CONTINUE;
 }
 
 BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
 
-	// check to see if this device has been added before
-	for (auto& iter : m_Controllers) {
-		if (iter.second.deviceInfo.guidInstance == instance->guidInstance) {
-			iter.second.acquired = true;
-			return DIENUM_CONTINUE;
-		}
-	}
+	int index = -1;
 
-	Controller thisController;
-	for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
-		if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
-			thisController.joystickType = i;
+	// check to see if this device has been added before, and get index if it has
+	for (int i = 0; i < m_Controllers.size(); i++) {
+		if (m_Controllers[i]->deviceInfo.guidInstance == instance->guidInstance) {
+			m_Controllers[i]->acquired = true;
+			index = i;
 			break;
 		}
 	}
-	//only allow ps4 controllers
-	//if (joystickType != 1) {
-	//	return DIENUM_CONTINUE;
-	//}
+
+	Controller* thisController;
+
+	//if this controller has not been added
+	//then we create it
+	if (index == -1) {
+		thisController = new Controller();
+
+		//get joystick type
+		for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
+			if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
+				thisController->joystickType = i;
+				break;
+			}
+		}
+
+
+	} else {
+		thisController = m_Controllers[index];
+	}
+
+	m_LatestController = thisController;
+
 
 	//select the first joystick
-	hr = di->CreateDevice(instance->guidInstance, &thisController.joystick, NULL);
+	hr = di->CreateDevice(instance->guidInstance, &thisController->joystick, NULL);
 	if (FAILED(hr)) {
 		return DIENUM_CONTINUE;
 	}
 
-	if (thisController.joystick == NULL) {
+	if (thisController->joystick == NULL) {
 		return DIENUM_CONTINUE;
 	}
 
-	m_LatestController = &thisController;
-	thisController.acquired = true;
+	thisController->acquired = true;
 
-	thisController.capabilities.dwSize = sizeof(DIDEVCAPS);
-	thisController.deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
 
-	hr = thisController.joystick->SetDataFormat(&c_dfDIJoystick2);
+
+	hr = thisController->joystick->SetDataFormat(&c_dfDIJoystick2);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
 
-	hr = thisController.joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+	hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
-	hr = thisController.joystick->GetCapabilities(&thisController.capabilities);
+	hr = thisController->joystick->EnumObjects(enumAxesSetCallback, NULL, DIDFT_AXIS);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
-	hr = thisController.joystick->EnumObjects(enumAxesSetCallback, NULL, DIDFT_AXIS);
-	if (FAILED(hr)) {
-		return hr;
+	if (index == -1) {
+		thisController->capabilities.dwSize = sizeof(DIDEVCAPS);
+		thisController->deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
+		hr = thisController->joystick->GetCapabilities(&thisController->capabilities);
+		if (FAILED(hr)) {
+			return hr;
+		}
+
+		hr = thisController->joystick->GetDeviceInfo(&thisController->deviceInfo);
+		if (FAILED(hr)) {
+			return hr;
+		}
+
+		m_Controllers.push_back(thisController);
+	} else {
+		m_Controllers[index] = thisController;
 	}
 
-	hr = thisController.joystick->GetDeviceInfo(&thisController.deviceInfo);
-	if (FAILED(hr)) {
-		return hr;
-	}
+	thisController->joystick->Acquire();
 
-	m_Controllers[m_NumOfControllersFound] = thisController;
-	m_NumOfControllersFound++;
+
+	//m_NumOfControllersFound++;
 	return DIENUM_CONTINUE;
 }
 
@@ -332,28 +386,28 @@ float getAxisFromEnum(Axes a_Axis) {
 	float value = 0;
 	switch (a_Axis) {
 	case Axes::LStickX:
-		value = m_Controllers[m_ControllerIndex].joystickState.lX;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lX;
 		break;
 	case Axes::LStickY:
-		value = m_Controllers[m_ControllerIndex].joystickState.lY;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lY;
 		break;
 	case Axes::RStickX:
-		value = m_Controllers[m_ControllerIndex].joystickState.lZ;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lZ;
 		break;
 	case Axes::RStickY:
-		value = m_Controllers[m_ControllerIndex].joystickState.lRz;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lRz;
 		break;
-	//case Axes::LeftTrigger:
-	//	value = (m_Controllers[m_ControllerIndex].joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
-	//	break;
-	//case Axes::RightTrigger:
-	//	value = (m_Controllers[m_ControllerIndex].joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
-	//	break;
+		//case Axes::LeftTrigger:
+		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
+		//	break;
+		//case Axes::RightTrigger:
+		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
+		//	break;
 	case Axes::LeftTrigger:
-		value = m_Controllers[m_ControllerIndex].joystickState.lRx;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lRx;
 		break;
 	case Axes::RightTrigger:
-		value = m_Controllers[m_ControllerIndex].joystickState.lRy;
+		value = m_Controllers[m_ControllerIndex]->joystickState.lRy;
 		break;
 	default:
 		return 0.0f;

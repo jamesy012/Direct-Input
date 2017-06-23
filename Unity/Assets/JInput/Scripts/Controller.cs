@@ -13,16 +13,42 @@ namespace JInput {
 		public int hatSwitch = 0;
 	}
 
-	public enum ControllerAxes {
-		LStickX,
-		LStickY,
-		RStickX,
-		RStickY,
-		LeftTrigger,
-		RightTrigger
-	};
+    public enum ControllerAxes {
+        LStickX,
+        LStickY,
+        RStickX,
+        RStickY,
+        LeftTrigger,
+        RightTrigger
+    };
 
-	[System.Serializable]
+    public enum ControllerButtons {
+        Cross = 0,
+        A = 0,
+        Circle = 1,
+        B = 1,
+        Square = 2,
+        X = 2,
+        Triangle = 3,
+        Y = 3,
+        L1 = 4,
+        LB = 4,
+        LeftBumper = 4,
+        R1 = 5,
+        RB = 5,
+        RightBumper = 5,
+        L3 = 6,
+        LS = 6,
+        LeftStick = 6,
+        R3 = 7,
+        RS = 7,
+        RightStick = 7,
+        Select = 8,
+        Start = 9,
+        Home = 10,
+    };
+
+    [System.Serializable]
 	public class Controller {
 
 
@@ -79,5 +105,10 @@ namespace JInput {
 			}
 			m_Data.hatSwitch = getPovDir();
 		}
+        
+        public bool IsButtonDown(ControllerButtons a_Button) {
+            return m_Data.buttons[(int)a_Button];            
+        }
+
 	}
 }
