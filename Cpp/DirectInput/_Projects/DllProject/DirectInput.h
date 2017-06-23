@@ -5,6 +5,12 @@
 //todo: support xInput to allow the xbox controllers to have separate triggers
 //https://msdn.microsoft.com/en-us/library/windows/desktop/ee417014(v=vs.85).aspx
 
+//todo have each controller store their index, and use that when getting input
+//when having two controllers plugged in, and you plug in a new one,
+//windows may give it index 1, so the controller already in 1 is now 2
+//this effects the poll and GetDeviceState
+//update the list to be in line with Windows's controller index
+
 //includes
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
@@ -22,6 +28,7 @@
 //list of all controllers
 std::vector<Controller*> m_Controllers;
 int m_NumOfControllersFound = 0;
+int m_NumOfNewControllersAdded = 0;
 
 Controller* m_LatestController = nullptr;
 
@@ -40,7 +47,7 @@ CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* 
 //will create a device for joysticks that haven't been added yet
 CALLBACK_FUNC enumJoystickOldControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
 //will create a device for all connected joysticks
-CALLBACK_FUNC enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+CALLBACK_FUNC enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
 //sets up the axes for a joystick
 CALLBACK_FUNC enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context);
 //gets the axis value from Axes enum

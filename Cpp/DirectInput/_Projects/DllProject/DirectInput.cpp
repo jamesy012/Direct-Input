@@ -141,11 +141,22 @@ const EXPORT_API int updateControllers() {
 			}
 		}
 
-		//go through all controllers
-		HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickNewConttollerCallback, NULL, DIEDFL_ATTACHEDONLY);
+		m_NumOfNewControllersAdded = 0;
+
+		HRESULT hr;
+		//go and set up all old controllers
+		hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickOldControllerCallback, NULL, DIEDFL_ATTACHEDONLY);
 		if (FAILED(hr)) {
 			return 0;
 		}
+
+		//go through all new controllers
+		hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickNewControllerCallback, NULL, DIEDFL_ATTACHEDONLY);
+		if (FAILED(hr)) {
+			return 0;
+		}
+
+		newControllerCount -= m_NumOfNewControllersAdded;
 	}
 
 	return newControllerCount;
@@ -284,7 +295,7 @@ CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE * instance, VOID 
 	return DIENUM_CONTINUE;
 }
 
-BOOL CALLBACK enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
+BOOL CALLBACK enumJoystickOldControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
 
 	int index = -1;
@@ -292,30 +303,75 @@ BOOL CALLBACK enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance
 	// check to see if this device has been added before, and get index if it has
 	for (int i = 0; i < m_Controllers.size(); i++) {
 		if (m_Controllers[i]->deviceInfo.guidInstance == instance->guidInstance) {
-			m_Controllers[i]->acquired = true;
-			index = i;
+			index = m_Controllers[i]->controllerIndex;
 			break;
 		}
 	}
 
-	Controller* thisController;
-
-	//if this controller has not been added
-	//then we create it
+	//this is not a old computer, skip it
 	if (index == -1) {
-		thisController = new Controller();
+		return DIENUM_CONTINUE;
+	}
 
-		//get joystick type
-		for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
-			if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
-				thisController->joystickType = i;
-				break;
-			}
+	Controller* thisController = m_Controllers[index];
+	m_LatestController = thisController;
+
+
+	//select the first joystick
+	hr = di->CreateDevice(instance->guidInstance, &thisController->joystick, NULL);
+	if (FAILED(hr)) {
+		return DIENUM_CONTINUE;
+	}
+
+	if (thisController->joystick == NULL) {
+		return DIENUM_CONTINUE;
+	}
+
+	hr = thisController->joystick->SetDataFormat(&c_dfDIJoystick2);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_BACKGROUND);
+	hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	hr = thisController->joystick->EnumObjects(enumAxesSetCallback, NULL, DIDFT_AXIS);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	hr = thisController->joystick->Acquire();
+	if (FAILED(hr)) {
+		return DIENUM_CONTINUE;
+	}
+
+	thisController->acquired = true;
+
+	return DIENUM_CONTINUE;
+}
+
+BOOL CALLBACK enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
+	HRESULT hr;
+
+	// check to see if this device has been added before, and get index if it has
+	for (int i = 0; i < m_Controllers.size(); i++) {
+		if (m_Controllers[i]->deviceInfo.guidInstance == instance->guidInstance) {
+			return DIENUM_CONTINUE;
 		}
+	}
 
+	Controller* thisController = new Controller();
 
-	} else {
-		thisController = m_Controllers[index];
+	//get joystick type
+	for (int i = 1; i < NUM_OF_COMMON_CONTROLLER_TYPES; i++) {
+		if (instance->guidProduct == CommonControllers[i].m_Base.m_Guid) {
+			thisController->joystickType = i;
+			break;
+		}
 	}
 
 	m_LatestController = thisController;
@@ -331,15 +387,10 @@ BOOL CALLBACK enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance
 		return DIENUM_CONTINUE;
 	}
 
-	thisController->acquired = true;
-
-
-
 	hr = thisController->joystick->SetDataFormat(&c_dfDIJoystick2);
 	if (FAILED(hr)) {
 		return hr;
 	}
-
 
 	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
 	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_BACKGROUND);
@@ -353,28 +404,28 @@ BOOL CALLBACK enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance
 		return hr;
 	}
 
-	if (index == -1) {
-		thisController->capabilities.dwSize = sizeof(DIDEVCAPS);
-		thisController->deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
-		hr = thisController->joystick->GetCapabilities(&thisController->capabilities);
-		if (FAILED(hr)) {
-			return hr;
-		}
-
-		hr = thisController->joystick->GetDeviceInfo(&thisController->deviceInfo);
-		if (FAILED(hr)) {
-			return hr;
-		}
-		thisController->controllerIndex = m_Controllers.size();
-		m_Controllers.push_back(thisController);
-	} else {
-		m_Controllers[index] = thisController;
+	thisController->capabilities.dwSize = sizeof(DIDEVCAPS);
+	thisController->deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
+	hr = thisController->joystick->GetCapabilities(&thisController->capabilities);
+	if (FAILED(hr)) {
+		return hr;
 	}
 
-	thisController->joystick->Acquire();
+	hr = thisController->joystick->GetDeviceInfo(&thisController->deviceInfo);
+	if (FAILED(hr)) {
+		return hr;
+	}
+	thisController->controllerIndex = m_Controllers.size();
+	m_Controllers.push_back(thisController);
+	m_NumOfNewControllersAdded++;
 
+	hr = thisController->joystick->Acquire();
+	if (FAILED(hr)) {
+		return DIENUM_CONTINUE;
+	}
 
-	//m_NumOfControllersFound++;
+	thisController->acquired = true;
+
 	return DIENUM_CONTINUE;
 }
 
