@@ -2,6 +2,9 @@
 
 //can probably put a lot of this in the cpp
 
+//todo: support xInput to allow the xbox controllers to have separate triggers
+//https://msdn.microsoft.com/en-us/library/windows/desktop/ee417014(v=vs.85).aspx
+
 //includes
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
@@ -34,9 +37,10 @@ int m_ControllerIndex = 0;
 //will create a device for all connected joysticks
 //currently just creates them for the first device it finds
 CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+//will create a device for joysticks that haven't been added yet
+CALLBACK_FUNC enumJoystickOldControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
 //will create a device for all connected joysticks
-//currently just creates them for the first device it finds
-CALLBACK_FUNC enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context);
+CALLBACK_FUNC enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
 //sets up the axes for a joystick
 CALLBACK_FUNC enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context);
 //gets the axis value from Axes enum
@@ -71,6 +75,7 @@ EXPORT_START {
 	const	EXPORT_API	int			getNumberOfControllers();
 	const	EXPORT_API	bool		isControllerXbox();
 	const	EXPORT_API	bool		isControllerActive();
+	const	EXPORT_API	int			getControllerIndex();
 
 	/* BUTTON/AXES */
 

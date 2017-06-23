@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace JInput {
-	public class Input : MonoBehaviour {
+	public class JInputManager : MonoBehaviour {
 
 		[DllImport("ControllerInputDll")]
 		private static extern int startInput();
@@ -31,19 +31,23 @@ namespace JInput {
         [DllImport("ControllerInputDll")]
         private static extern int getNumberOfControllers();
 
-        public static Input m_Input;
+        public static JInputManager m_Input;
 
 		[SerializeField]
 		private List<Controller> m_Controllers = new List<Controller>();
 
-		// Use this for initialization
-		void Start() {
+        public int numberOfControllers{ get { return m_Controllers.Count; } }
+
+        // Use this for initialization
+        void Start() {
 			if (m_Input != null) {
-				Debug.LogError("THERE ARE TWO INPUT SCRIPTS");
+				Debug.LogError("THERE ARE TWO INPUT SCRIPTS destroying " + transform.gameObject + " input script");
+                Destroy(this);
 				return;
 			}
 			m_Input = this;
-			int start = startInput();
+            DontDestroyOnLoad(m_Input);
+			startInput();
             addControllers();
 		}
 

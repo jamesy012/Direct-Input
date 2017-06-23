@@ -81,9 +81,9 @@ namespace JInput {
 
 		public ControllerData data { get { return m_Data; } }
 
-        internal bool m_IsXbox = false;
-        internal int m_ControllerIndex = 0;
-		internal bool m_IsActive = false;
+        public bool m_IsXbox = false;
+        public int m_ControllerIndex = 0;
+		public bool m_IsActive = false;
 
         public void startController(int a_ControllerIndex) {
             m_ControllerIndex = a_ControllerIndex;

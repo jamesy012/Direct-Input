@@ -113,6 +113,15 @@ const EXPORT_API int updateInputController(int a_Index) {
 }
 
 const EXPORT_API int updateControllers() {
+
+	for (int i = 0; i < m_Controllers.size(); i++) {
+		if (m_Controllers[i]->joystick != nullptr) {
+			if (!m_Controllers[i]->acquired) {
+				m_Controllers[i]->joystick->Acquire();
+			}
+		}
+	}
+
 	int startNumControllers = m_NumOfControllersFound;
 
 	m_NumOfControllersFound = 0;
@@ -133,7 +142,7 @@ const EXPORT_API int updateControllers() {
 		}
 
 		//go through all controllers
-		HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickSelectCallback, NULL, DIEDFL_ATTACHEDONLY);
+		HRESULT hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickNewConttollerCallback, NULL, DIEDFL_ATTACHEDONLY);
 		if (FAILED(hr)) {
 			return 0;
 		}
@@ -156,6 +165,10 @@ const EXPORT_API bool isControllerXbox() {
 
 const EXPORT_API bool isControllerActive() {
 	return m_Controllers[m_ControllerIndex]->acquired;
+}
+
+const EXPORT_API int getControllerIndex() {
+	return m_Controllers[m_ControllerIndex]->controllerIndex;
 }
 
 const EXPORT_API int getButton(int a_Index) {
@@ -271,7 +284,7 @@ CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE * instance, VOID 
 	return DIENUM_CONTINUE;
 }
 
-BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
+BOOL CALLBACK enumJoystickNewConttollerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 	HRESULT hr;
 
 	int index = -1;
@@ -328,7 +341,9 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 	}
 
 
-	hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_FOREGROUND);
+	//hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_EXCLUSIVE | DISCL_BACKGROUND);
+	hr = thisController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -350,7 +365,7 @@ BOOL CALLBACK enumJoystickSelectCallback(const DIDEVICEINSTANCE* instance, VOID*
 		if (FAILED(hr)) {
 			return hr;
 		}
-
+		thisController->controllerIndex = m_Controllers.size();
 		m_Controllers.push_back(thisController);
 	} else {
 		m_Controllers[index] = thisController;

@@ -20,7 +20,7 @@ int main() {
 	}
 	updateControllers();
 
-	//displayControllerData(0, getNumberOfControllers());
+	displayControllerData(0, getNumberOfControllers());
 
 
 	int counter = 0;
@@ -44,6 +44,7 @@ int main() {
 			if (!isControllerActive()) {
 				continue;
 			}
+			std::cout << "Index " << getControllerIndex() << std::endl;
 			bool isXbox = isControllerXbox();
 			std::cout << "Left Trigger: " << getAxesValue(Axes::LeftTrigger) << std::endl;
 			std::cout << "Right Trigger: " << getAxesValue(Axes::RightTrigger) << std::endl;
@@ -86,7 +87,7 @@ int main() {
 	}
 
 	releaseInput();
-	_CrtDumpMemoryLeaks();
+	//_CrtDumpMemoryLeaks();
 	return 1;
 }
 
@@ -94,6 +95,7 @@ void displayControllerData(int a_Start, int a_NumOfControllers) {
 	system("cls");
 	for (int controller = a_Start; controller < a_Start + a_NumOfControllers; controller++) {
 		setCurrentController(controller);
+		std::cout << "Index " << getControllerIndex() << std::endl;
 		std::cout << "Device name: " << getDeviceName() << " Known name: " << getKnownDeviceName() << "\nGUID ";
 		GUID guid = getDeviceGUID();
 		std::cout << guid.Data1 << ", " << guid.Data2 << ", " << guid.Data3 << ", (";

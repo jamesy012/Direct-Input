@@ -175,6 +175,8 @@ struct Controller {
 	DIDEVICEINSTANCEA deviceInfo;
 	//which control scheme is this line
 	int joystickType = 0;
+	//this controllers index
+	int controllerIndex = 0;
 
 	//is this controller currently acquired
 	bool acquired = false;
