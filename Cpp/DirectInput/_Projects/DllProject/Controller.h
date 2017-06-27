@@ -163,8 +163,10 @@ struct Controller_Data {
 	//int m_Axes[6];// { MAP_AXES(lX),MAP_AXES(lY),MAP_AXES(lZ),MAP_AXES(lRx),MAP_AXES(lRy),MAP_AXES(lRz) };
 };
 
-//all data based around a single controller
-struct Controller {
+struct WindowsControllerData;
+struct UserController;
+
+struct WindowsControllerData {
 	//reference to the direct input joystick object
 	LPDIRECTINPUTDEVICE8 joystick;
 	//data from the controller
@@ -173,15 +175,26 @@ struct Controller {
 	DIDEVCAPS capabilities;
 	//information about this device
 	DIDEVICEINSTANCEA deviceInfo;
+
+	//is this controller currently acquired
+	bool acquired = false;
+
+	UserController* userController = nullptr;
+};
+
+//all data based around a single controller
+struct UserController {
 	//which control scheme is this line
 	int joystickType = 0;
 	//this controllers index
 	int controllerIndex = 0;
 
-	//is this controller currently acquired
-	bool acquired = false;
-};
+	//what was the last controller instance guid that this controller had
+	GUID controllerGuid;
 
+	WindowsControllerData* windowsController = nullptr;
+
+};
 
 
 EXPORT_START{

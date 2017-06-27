@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Controller.h"
+
 #define NUM_OF_COMMON_CONTROLLER_TYPES 5
 //if two controllers use the same mapping then there will be duplicated data :/
 //might change is so they reference their buttons and axis instead of having the same data for each controller

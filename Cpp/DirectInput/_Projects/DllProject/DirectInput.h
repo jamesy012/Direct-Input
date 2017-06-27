@@ -15,9 +15,7 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-#include <vector>
 
-#include "Controller.h"
 #include "ExportHeader.h"
 
 //defines
@@ -25,35 +23,11 @@
 
 //members/constants
 
-//list of all controllers
-std::vector<Controller*> m_Controllers;
-int m_NumOfControllersFound = 0;
-int m_NumOfNewControllersAdded = 0;
-
-Controller* m_LatestController = nullptr;
-
-HWND m_WindowHandle = NULL;
-
-int m_ControllerIndex = 0;
 
 
 /*** FUNCTIONS */
 
-/** non exported functions */
-
-//will create a device for all connected joysticks
-//currently just creates them for the first device it finds
-CALLBACK_FUNC enumJoystickCountCallback(const DIDEVICEINSTANCE* instance, VOID* context);
-//will create a device for joysticks that haven't been added yet
-CALLBACK_FUNC enumJoystickOldControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
-//will create a device for all connected joysticks
-CALLBACK_FUNC enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context);
-//sets up the axes for a joystick
-CALLBACK_FUNC enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* context);
-//gets the axis value from Axes enum
-float getAxisFromEnum(Axes a_Axis);
-
-
+//non exported functions moved into cpp
 
 //exported functions
 
@@ -106,6 +80,7 @@ EXPORT_START {
 
 	const	EXPORT_API	char*		getDeviceName();
 	const	EXPORT_API	GUID		getDeviceGUID();
+	const	EXPORT_API	GUID		getDeviceInstanceGUID();
 
 	const	EXPORT_API	int			getJoystickType();
 	const	EXPORT_API	char*		getKnownDeviceName();

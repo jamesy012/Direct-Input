@@ -33,7 +33,7 @@ int main() {
 
 		int newControllers = updateControllers();
 		if (newControllers > 0) {
-			displayControllerData(getNumberOfControllers() - newControllers, newControllers);
+			//displayControllerData(getNumberOfControllers() - newControllers, newControllers);
 		}
 		updateInput();
 
@@ -44,7 +44,8 @@ int main() {
 			if (!isControllerActive()) {
 				continue;
 			}
-			std::cout << "Index " << getControllerIndex() << std::endl;
+
+			std::cout << "Index " << getControllerIndex() << " guid: " << getDeviceInstanceGUID().Data1 << std::endl;
 			bool isXbox = isControllerXbox();
 			std::cout << "Left Trigger: " << getAxesValue(Axes::LeftTrigger) << std::endl;
 			std::cout << "Right Trigger: " << getAxesValue(Axes::RightTrigger) << std::endl;
@@ -69,21 +70,21 @@ int main() {
 			std::cout << std::endl;
 			std::cout << std::endl;
 
-			if (getButton(Buttons::Start)) {
-				loop = false;
-			}
+			//if (getButton(Buttons::Start)) {
+			//	loop = false;
+			//}
 		}
 
-		int amountOfButtonsDown = 0;
-		for (int controller = 0; controller < getNumberOfControllers(); controller++) {
-			setCurrentController(controller);
-			if (getButton(Buttons::A)) {
-				amountOfButtonsDown++;
-			}
-		}
-		if (amountOfButtonsDown == 2) {
-			loop &= false;
-		}
+		//int amountOfButtonsDown = 0;
+		//for (int controller = 0; controller < getNumberOfControllers(); controller++) {
+		//	setCurrentController(controller);
+		//	if (getButton(Buttons::A)) {
+		//		amountOfButtonsDown++;
+		//	}
+		//}
+		//if (amountOfButtonsDown == 2) {
+		//	loop &= false;
+		//}
 	}
 
 	releaseInput();
