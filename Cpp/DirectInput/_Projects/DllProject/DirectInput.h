@@ -11,6 +11,11 @@
 //this effects the poll and GetDeviceState
 //update the list to be in line with Windows's controller index
 
+//Update:
+//	controller's now keep their guid, tested with two ps4 controllers plugged in at the start
+//	Note:	when a controller is added later then it makes one controller act as two
+//			better hope that windows puts them in the right order if you add them after starting
+
 //includes
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>

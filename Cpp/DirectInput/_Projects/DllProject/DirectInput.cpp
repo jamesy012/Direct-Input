@@ -71,7 +71,7 @@ const EXPORT_API int startInput() {
 		return E_FAIL;
 	}
 
-	hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**) &di, NULL);
+	hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&di, NULL);
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -124,6 +124,9 @@ const EXPORT_API int updateInput() {
 const EXPORT_API int updateInputController(int a_Index) {
 	HRESULT hr;
 	WindowsControllerData* controller = m_WindowsControllers[a_Index];
+	if (controller == nullptr) {
+		return S_OK;
+	}
 	if (controller->joystick == NULL) {
 		return S_OK;
 	}
@@ -167,7 +170,7 @@ const EXPORT_API int updateInputController(int a_Index) {
 const EXPORT_API int updateControllers() {
 	//acquire controllers if they are not acquired already
 	for (int i = 0; i < m_WindowsControllers.size(); i++) {
-		if (m_WindowsControllers[i]->joystick != nullptr) {
+		if (m_WindowsControllers[i] != nullptr) {
 			if (!m_WindowsControllers[i]->acquired) {
 				m_WindowsControllers[i]->joystick->Acquire();
 			}
@@ -189,19 +192,21 @@ const EXPORT_API int updateControllers() {
 
 		//reset all controllers
 		for (int i = 0; i < m_WindowsControllers.size(); i++) {
-			if (m_WindowsControllers[i]->joystick != nullptr) {
-				m_WindowsControllers[i]->joystick->Unacquire();
-				m_WindowsControllers[i]->joystick->Release();
+			if (m_WindowsControllers[i] != nullptr) {
+				if (!m_WindowsControllers[i]->acquired) {
+					m_WindowsControllers[i]->joystick->Unacquire();
+					m_WindowsControllers[i]->joystick->Release();
 
-				//remove reference to this controller
-				m_WindowsControllers[i]->userController->windowsController = nullptr;
+					//remove reference to this controller
+					m_WindowsControllers[i]->userController->windowsController = nullptr;
 
-				delete m_WindowsControllers[i];
-				m_WindowsControllers[i] = nullptr;
+					delete m_WindowsControllers[i];
+					m_WindowsControllers[i] = nullptr;
+				}
 			}
 		}
 
-		m_WindowsControllers.clear();
+		//m_WindowsControllers.clear();
 
 		HRESULT hr;
 		////go and set up all old controllers
@@ -227,11 +232,19 @@ const EXPORT_API int updateControllers() {
 			WindowsControllerData* wcd = m_WindowsControllers[i];
 			//check to see if it matches one of controllers that have been plugged in before
 			UserController* controller = nullptr;
+			bool controllerIsNull = false;
 			for (int q = 0; q < m_UserControllers.size(); q++) {
+				if (wcd == nullptr) {
+					controllerIsNull = true;
+					break;
+				}
 				if (m_UserControllers[q]->controllerGuid == wcd->deviceInfo.guidInstance) {
 					controller = m_UserControllers[q];
 					break;
 				}
+			}
+			if (controllerIsNull) {
+				continue;
 			}
 			//this controller has not been connected before
 			if (controller == nullptr) {
@@ -322,8 +335,8 @@ const EXPORT_API int getPovValue() {
 const EXPORT_API int getPovDir() {
 	int hat = 0;
 	if (getCurrentWCD()->joystick) {
-		hat = ((int) getCurrentWCD()->joystickState.rgdwPOV[0] / 4500) + 1;
-		if (getCurrentWCD()->joystickState.rgdwPOV[0] == -1 || (unsigned int) hat >= 10) {
+		hat = ((int)getCurrentWCD()->joystickState.rgdwPOV[0] / 4500) + 1;
+		if (getCurrentWCD()->joystickState.rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
 			hat = 0;
 		}
 	}
@@ -523,6 +536,15 @@ BOOL CALLBACK enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance
 
 
 BOOL CALLBACK enumJoystickControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
+
+	for (int i = 0; i < m_WindowsControllers.size(); i++) {
+		if (m_WindowsControllers[i] != nullptr) {
+			if (m_WindowsControllers[i]->deviceInfo.guidInstance == instance->guidInstance) {
+				return DIENUM_CONTINUE;
+			}
+		}
+	}
+
 	HRESULT hr;
 	//create WindowsControllerData
 	WindowsControllerData* wcd = new WindowsControllerData();
@@ -577,32 +599,32 @@ float getAxisFromEnum(Axes a_Axis) {
 	float value = 0;
 	WindowsControllerData* wcd = getCurrentWCD();
 	switch (a_Axis) {
-		case Axes::LStickX:
-			value = wcd->joystickState.lX;
-			break;
-		case Axes::LStickY:
-			value = wcd->joystickState.lY;
-			break;
-		case Axes::RStickX:
-			value = wcd->joystickState.lZ;
-			break;
-		case Axes::RStickY:
-			value = wcd->joystickState.lRz;
-			break;
-			//case Axes::LeftTrigger:
-			//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
-			//	break;
-			//case Axes::RightTrigger:
-			//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
-			//	break;
-		case Axes::LeftTrigger:
-			value = wcd->joystickState.lRx;
-			break;
-		case Axes::RightTrigger:
-			value = wcd->joystickState.lRy;
-			break;
-		default:
-			return 0.0f;
+	case Axes::LStickX:
+		value = wcd->joystickState.lX;
+		break;
+	case Axes::LStickY:
+		value = wcd->joystickState.lY;
+		break;
+	case Axes::RStickX:
+		value = wcd->joystickState.lZ;
+		break;
+	case Axes::RStickY:
+		value = wcd->joystickState.lRz;
+		break;
+		//case Axes::LeftTrigger:
+		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
+		//	break;
+		//case Axes::RightTrigger:
+		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
+		//	break;
+	case Axes::LeftTrigger:
+		value = wcd->joystickState.lRx;
+		break;
+	case Axes::RightTrigger:
+		value = wcd->joystickState.lRy;
+		break;
+	default:
+		return 0.0f;
 	}
 	return value;
 }
