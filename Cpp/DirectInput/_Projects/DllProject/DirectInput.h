@@ -3,18 +3,32 @@
 //can probably put a lot of this in the cpp
 
 //todo: support xInput to allow the xbox controllers to have separate triggers
+//low priority 
 //https://msdn.microsoft.com/en-us/library/windows/desktop/ee417014(v=vs.85).aspx
 
 //todo have each controller store their index, and use that when getting input
+//high priority 
 //when having two controllers plugged in, and you plug in a new one,
 //windows may give it index 1, so the controller already in 1 is now 2
 //this effects the poll and GetDeviceState
 //update the list to be in line with Windows's controller index
+	//Update:
+	//	controller's now keep their guid, tested with two ps4 controllers plugged in at the start
+	//	Note:	when a controller is added later then it makes one controller act as two
+	//			better hope that windows puts them in the right order if you add them after starting
 
-//Update:
-//	controller's now keep their guid, tested with two ps4 controllers plugged in at the start
-//	Note:	when a controller is added later then it makes one controller act as two
-//			better hope that windows puts them in the right order if you add them after starting
+
+//todo:	if the controller index is -1 then it will use the most recent controller
+//medium priority 
+
+//todo:	store the last controllers input and check to see how far it's moved
+//low priority 
+
+//todo: controller deadzone
+//low priority 
+	
+//todo:	COMMENTS!
+//high priority 
 
 //includes
 #define DIRECTINPUT_VERSION 0x0800
@@ -69,7 +83,7 @@ EXPORT_START {
 	const	EXPORT_API	int			getButton(int a_Index);
 	//returns button information based on the controllers index
 	const	EXPORT_API	int			getButtonNormal(int a_Index);
-	const	EXPORT_API	int			getAxesValue(int a_Index);
+	const	EXPORT_API	float		getAxesValue(int a_Index);
 	const	EXPORT_API	int			getPovValue();
 	const	EXPORT_API	int			getPovDir();
 	const	EXPORT_API	char*		getPovName(int a_Dir);

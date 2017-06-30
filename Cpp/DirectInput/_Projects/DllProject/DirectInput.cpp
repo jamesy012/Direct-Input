@@ -85,7 +85,7 @@ const EXPORT_API int startInput() {
 }
 
 const EXPORT_API void releaseInput() {
-	for (int i = 0; i < m_WindowsControllers.size(); i++) {
+	for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 		if (m_WindowsControllers[i]->joystick != nullptr) {
 			m_WindowsControllers[i]->joystick->Unacquire();
 			m_WindowsControllers[i]->joystick->Release();
@@ -94,7 +94,7 @@ const EXPORT_API void releaseInput() {
 		}
 	}
 
-	for (int i = 0; i < m_UserControllers.size(); i++) {
+	for (size_t i = 0; i < m_UserControllers.size(); i++) {
 		if (m_UserControllers[i] != nullptr) {
 			delete m_UserControllers[i];
 			m_UserControllers[i] = nullptr;
@@ -114,8 +114,8 @@ const EXPORT_API void releaseInput() {
 
 const EXPORT_API int updateInput() {
 
-	for (int i = 0; i < m_WindowsControllers.size(); i++) {
-		updateInputController(i);
+	for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
+		updateInputController((int)i);
 	}
 
 	return S_OK;
@@ -165,11 +165,12 @@ const EXPORT_API int updateInputController(int a_Index) {
 	if (FAILED(hr)) {
 		return hr;
 	}
+	return S_OK;
 }
 
 const EXPORT_API int updateControllers() {
 	//acquire controllers if they are not acquired already
-	for (int i = 0; i < m_WindowsControllers.size(); i++) {
+	for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 		if (m_WindowsControllers[i] != nullptr) {
 			if (!m_WindowsControllers[i]->acquired) {
 				m_WindowsControllers[i]->joystick->Acquire();
@@ -191,7 +192,7 @@ const EXPORT_API int updateControllers() {
 	if (newControllerCount != 0) {
 
 		//reset all controllers
-		for (int i = 0; i < m_WindowsControllers.size(); i++) {
+		for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 			if (m_WindowsControllers[i] != nullptr) {
 				if (!m_WindowsControllers[i]->acquired) {
 					m_WindowsControllers[i]->joystick->Unacquire();
@@ -221,36 +222,36 @@ const EXPORT_API int updateControllers() {
 		//	return 0;
 		//}
 
-		//go through all new controllers
+		//go through all controllers
+		//this will only add a new windows controller if one with it's instance id doesnt already exist 
 		hr = di->EnumDevices(DI8DEVCLASS_GAMECTRL, enumJoystickControllerCallback, NULL, DIEDFL_ATTACHEDONLY);
 		if (FAILED(hr)) {
 			return 0;
 		}
 
 		//go through all new controllers
-		for (int i = 0; i < m_WindowsControllers.size(); i++) {
+		for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 			WindowsControllerData* wcd = m_WindowsControllers[i];
+			//there is a chance this controller has been disconnect
+			if (wcd == nullptr) {
+				continue;
+			}
 			//check to see if it matches one of controllers that have been plugged in before
 			UserController* controller = nullptr;
-			bool controllerIsNull = false;
-			for (int q = 0; q < m_UserControllers.size(); q++) {
-				if (wcd == nullptr) {
-					controllerIsNull = true;
-					break;
-				}
+			//go through current/past controllers
+			for (size_t q = 0; q < m_UserControllers.size(); q++) {
+				//check if it has been connected previously 
 				if (m_UserControllers[q]->controllerGuid == wcd->deviceInfo.guidInstance) {
 					controller = m_UserControllers[q];
 					break;
 				}
 			}
-			if (controllerIsNull) {
-				continue;
-			}
 			//this controller has not been connected before
 			if (controller == nullptr) {
+				//create new controller and assign information for it
 				controller = new UserController();
 				controller->controllerGuid = wcd->deviceInfo.guidInstance;
-				controller->controllerIndex = m_UserControllers.size();
+				controller->controllerIndex = (int)m_UserControllers.size();
 
 				//get joystick type
 				for (int q = 1; q < NUM_OF_COMMON_CONTROLLER_TYPES; q++) {
@@ -260,14 +261,14 @@ const EXPORT_API int updateControllers() {
 					}
 				}
 
+				//add to list of controllers
 				m_UserControllers.push_back(controller);
 			}
+			//tell user controller and the windows controller which one 
 			controller->windowsController = wcd;
 			wcd->userController = controller;
 
 		}
-
-		//put list of new controller index's into a vector
 	}
 
 	return newControllerCount;
@@ -278,7 +279,7 @@ const EXPORT_API void setCurrentController(int a_Index) {
 }
 
 const EXPORT_API int getNumberOfControllers() {
-	return m_UserControllers.size();
+	return (int)m_UserControllers.size();
 }
 
 const EXPORT_API bool isControllerXbox() {
@@ -298,7 +299,7 @@ const EXPORT_API int getControllerIndex() {
 
 const EXPORT_API int getButton(int a_Index) {
 	if (getCurrentWCD()->joystick) {
-		if (a_Index >= getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
+		if (a_Index >= (int)getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
 		int index = getButtonIndex(a_Index);
@@ -309,7 +310,7 @@ const EXPORT_API int getButton(int a_Index) {
 
 const EXPORT_API int getButtonNormal(int a_Index) {
 	if (getCurrentWCD()->joystick) {
-		if (a_Index >= getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
+		if (a_Index >= (int)getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
 		return getCurrentWCD()->joystickState.rgbButtons[a_Index];
@@ -317,7 +318,7 @@ const EXPORT_API int getButtonNormal(int a_Index) {
 	return 0;
 }
 
-const EXPORT_API int getAxesValue(int a_Index) {
+const EXPORT_API float getAxesValue(int a_Index) {
 	if (getCurrentWCD()->joystick) {
 		Axes index = CommonControllers[getCurrentUserController()->joystickType].m_Axes.m_Axes[a_Index];
 		return getAxisFromEnum(index);
@@ -426,7 +427,7 @@ BOOL CALLBACK enumJoystickOldControllerCallback(const DIDEVICEINSTANCE* instance
 
 	UserController* thisController = nullptr;
 	// check to see if this device has been added before, and get index if it has
-	for (int i = 0; i < m_UserControllers.size(); i++) {
+	for (size_t i = 0; i < m_UserControllers.size(); i++) {
 		if (m_UserControllers[i]->controllerGuid == instance->guidInstance) {
 			thisController = m_UserControllers[i];
 			break;
@@ -477,7 +478,7 @@ BOOL CALLBACK enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance
 	HRESULT hr;
 
 	// check to see if this device has been added before, and get index if it has
-	for (int i = 0; i < m_UserControllers.size(); i++) {
+	for (size_t i = 0; i < m_UserControllers.size(); i++) {
 		if (m_UserControllers[i]->controllerGuid == instance->guidInstance) {
 			return DIENUM_CONTINUE;
 		}
@@ -519,7 +520,7 @@ BOOL CALLBACK enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance
 
 	thisController->controllerGuid = wcd->deviceInfo.guidInstance;
 
-	thisController->controllerIndex = m_UserControllers.size();
+	thisController->controllerIndex = (int)m_UserControllers.size();
 	m_UserControllers.push_back(thisController);
 	m_WindowsControllers.push_back(wcd);
 	m_NumOfNewControllersAdded++;
@@ -537,7 +538,8 @@ BOOL CALLBACK enumJoystickNewControllerCallback(const DIDEVICEINSTANCE* instance
 
 BOOL CALLBACK enumJoystickControllerCallback(const DIDEVICEINSTANCE* instance, VOID* context) {
 
-	for (int i = 0; i < m_WindowsControllers.size(); i++) {
+	//check to see if this instance is currently in the system
+	for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 		if (m_WindowsControllers[i] != nullptr) {
 			if (m_WindowsControllers[i]->deviceInfo.guidInstance == instance->guidInstance) {
 				return DIENUM_CONTINUE;
@@ -596,7 +598,7 @@ BOOL CALLBACK enumAxesSetCallback(const DIDEVICEOBJECTINSTANCE* instance, VOID* 
 }
 
 float getAxisFromEnum(Axes a_Axis) {
-	float value = 0;
+	LONG value = 0;
 	WindowsControllerData* wcd = getCurrentWCD();
 	switch (a_Axis) {
 	case Axes::LStickX:
@@ -626,44 +628,53 @@ float getAxisFromEnum(Axes a_Axis) {
 	default:
 		return 0.0f;
 	}
-	return value;
+	return (float)value;
 }
 
 int setUpControllerBasics() {
 	HRESULT hr;
+	//tell it which format to use
 	hr = m_LatestWindowsController->joystick->SetDataFormat(&c_dfDIJoystick2);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
+	//set how this controller is acquired in relation to other programs and this
 	hr = m_LatestWindowsController->joystick->SetCooperativeLevel(m_WindowHandle, DISCL_NONEXCLUSIVE | DISCL_BACKGROUND);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
+	//go through each axes on the controller and set it's
 	hr = m_LatestWindowsController->joystick->EnumObjects(enumAxesSetCallback, NULL, DIDFT_AXIS);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
+	//set up struct sizes
 	m_LatestWindowsController->capabilities.dwSize = sizeof(DIDEVCAPS);
 	m_LatestWindowsController->deviceInfo.dwSize = sizeof(DIDEVICEINSTANCEA);
+
+	//get capability's of joystick
 	hr = m_LatestWindowsController->joystick->GetCapabilities(&m_LatestWindowsController->capabilities);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
+	//get info of joystick
 	hr = m_LatestWindowsController->joystick->GetDeviceInfo(&m_LatestWindowsController->deviceInfo);
 	if (FAILED(hr)) {
 		return hr;
 	}
-
+	return S_OK;
 }
 
 UserController * getCurrentUserController() {
 	return m_UserControllers[m_CurrentControllerIndex];
 }
 
+//get the current user Controller, then gets it windowsController
+//if m_UserControllres is empty, or the current controller index points to a empty slot this will cause a error
 WindowsControllerData * getCurrentWCD() {
 	return getCurrentUserController()->windowsController;
 }

@@ -117,7 +117,7 @@ struct Controller_Buttons {
 	};
 
 	Controller_Buttons(std::vector<char> a_Buttons) {
-		for (int i = 0; i < a_Buttons.size(); i++) {
+		for (size_t i = 0; i < a_Buttons.size(); i++) {
 			m_Buttons[i] = a_Buttons[i];
 		}
 	}
@@ -143,7 +143,7 @@ struct Controller_Axis {
 	bool m_SingleTrigger = true;
 
 	Controller_Axis(std::vector<Axes> a_Axes, TriggerType a_Tt) {
-		for (int i = 0; i < a_Axes.size(); i++) {
+		for (size_t i = 0; i < a_Axes.size(); i++) {
 			m_Axes[i] = a_Axes[i];
 		}
 		m_SingleTrigger = !!a_Tt;

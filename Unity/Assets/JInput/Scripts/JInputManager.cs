@@ -79,12 +79,21 @@ namespace JInput {
 		}
 
 		private void addControllers() {
+            //this breaks when a controller is disconnected and added
+            //change the index to just be referencing what the dll has
 			int newControllers = updateControllers();
-			for(int i = 0; i < newControllers; i++) {
-				Controller controller = new Controller();
-				controller.startController(m_Controllers.Count);
-				m_Controllers.Add(controller);
-			}
+            //if(getNumberOfControllers()!= m_Controllers.Count) {
+                for (int i = m_Controllers.Count; i < getNumberOfControllers(); i++) {
+                    Controller controller = new Controller();
+                    controller.startController(m_Controllers.Count);
+                    m_Controllers.Add(controller);
+                }
+            //}
+			//for(int i = 0; i < newControllers; i++) {
+			//	Controller controller = new Controller();
+			//	controller.startController(m_Controllers.Count);
+			//	m_Controllers.Add(controller);
+			//}
 		}
 
         private void OnDestroy() {

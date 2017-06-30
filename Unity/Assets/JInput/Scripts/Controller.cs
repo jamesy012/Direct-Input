@@ -56,7 +56,7 @@ namespace JInput {
 		private static extern int getButton(int a_Button);
 
 		[DllImport("ControllerInputDll")]
-		private static extern int getAxesValue(int a_Axis);
+		private static extern float getAxesValue(int a_Axis);
 
 		[DllImport("ControllerInputDll")]
 		private static extern int getPovValue();
