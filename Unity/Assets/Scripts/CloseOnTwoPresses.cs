@@ -5,19 +5,18 @@ using UnityEngine;
 using UnityEditor;
 #endif
 
-
-using Input = JInput.JInputManager;
+using JInput;
 
 public class CloseOnTwoPresses : MonoBehaviour {
 
-    public JInput.ControllerButtons m_Button;
+    public ControllerButtons m_Button;
 
     // Update is called once per frame
     void Update() {
-        if (Input.m_Input.numberOfControllers >= 2) {
+        if (InputManager.numberOfControllers >= 2) {
             int numPressed = 0;
-            for (int i = 0; i < Input.m_Input.numberOfControllers; i++) {
-                if (Input.m_Input.getController(i).IsButtonDown(m_Button)) {
+            for (int i = 0; i < InputManager.numberOfControllers; i++) {
+                if (InputManager.getController(i).IsButtonDown(m_Button)) {
                     numPressed++;
                 }
             }

@@ -33,7 +33,7 @@ public class UpdateUiToController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        JInput.Controller controller = JInput.JInputManager.m_Input.getController(m_ControllerIndex);
+        JInput.Controller controller = JInput.InputManager.getController(m_ControllerIndex);
         if(controller == null) {
             return;
         }
@@ -47,7 +47,7 @@ public class UpdateUiToController : MonoBehaviour {
         m_RightStickY.value = controller.data.axesValues[(int)JInput.ControllerAxes.RStickY];
 
         int hat = controller.data.hatSwitch;
-        m_PovText.text = JInput.JInputManager.GetNameFromHatDir(controller);
+        m_PovText.text = JInput.InputManager.GetNameFromHatDir(controller);
 
         if (hat == 1 || hat == 8 || hat == 2) {
             m_PovImages[0].color = Color.red;
@@ -81,7 +81,7 @@ public class UpdateUiToController : MonoBehaviour {
 					buttonsDown += ", ";
 				}
 				buttons++;
-				buttonsDown += JInput.JInputManager.GetNameFromButton(controller, i);
+				buttonsDown += JInput.InputManager.GetNameFromButton(controller, i);
 			}
 		}
 		m_ButtonText.text = buttonsDown;

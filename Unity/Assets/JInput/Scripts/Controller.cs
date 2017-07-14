@@ -6,10 +6,18 @@ using System.Runtime.InteropServices;
 
 namespace JInput {
 
+	internal enum ButtonStates {
+		Normal,
+		Pressed,
+		Released
+	}
+
 	[System.Serializable]
 	public class ControllerData {
 		public float[] axesValues = new float[6];
 		public bool[] buttons = new bool[14];
+		[HideInInspector]
+		internal ButtonStates[] buttonStates = new ButtonStates[14];
 		public int hatSwitch = 0;
 	}
 
@@ -48,12 +56,30 @@ namespace JInput {
         Home = 10,
     };
 
-    [System.Serializable]
+	public enum ControllerHatDir {
+		None,
+		Up,
+		UpRight,
+		Right,
+		DownRight,
+		Down,
+		DownLeft,
+		Left,
+		UpLeft
+	}
+
+	[System.Serializable]
 	public class Controller {
 
-
+		#region DLL FUNCTIONS
 		[DllImport("ControllerInputDll")]
 		private static extern int getButton(int a_Button);
+
+		//[DllImport("ControllerInputDll")]
+		//private static extern int getButtonDown(int a_Button);
+		//
+		//[DllImport("ControllerInputDll")]
+		//private static extern int getButtonUp(int a_Button);
 
 		[DllImport("ControllerInputDll")]
 		private static extern float getAxesValue(int a_Axis);
@@ -75,40 +101,100 @@ namespace JInput {
 
 		[DllImport("ControllerInputDll")]
         private static extern void setCurrentController(int a_CurrentController);
+		#endregion
 
-        [SerializeField]
+		[SerializeField]
 		private ControllerData m_Data = new ControllerData();
 
 		public ControllerData data { get { return m_Data; } }
 
-        public bool m_IsXbox = false;
-        public int m_ControllerIndex = 0;
+        private bool m_IsXbox = false;
+		public bool isXboxController { get { return m_IsXbox; } }
+
+        private int m_ControllerIndex = 0;
+		public int controllerIndex { get { return m_ControllerIndex; } }
 		public bool m_IsActive = false;
+		private bool m_WasActive = true;
 
-        public void startController(int a_ControllerIndex) {
-            m_ControllerIndex = a_ControllerIndex;
-            setCurrentController(m_ControllerIndex);
-            m_IsXbox = isControllerXbox();
-        }
+        
 
-		public void updateController() {
-            setCurrentController(m_ControllerIndex);
+		public bool IsButtonDown(ControllerButtons a_Button) {
+			return m_Data.buttons[(int)a_Button];
+		}
+
+		public bool WasButtonPressed(ControllerButtons a_Button) {
+			return m_Data.buttonStates[(int)a_Button] == ButtonStates.Pressed;
+		}
+
+		public bool WasButtonReleased(ControllerButtons a_Button) {
+			return m_Data.buttonStates[(int)a_Button] == ButtonStates.Released;
+		}
+
+		public float getAxisValue(ControllerAxes a_Axes) {
+			return m_Data.axesValues[(int)a_Axes];
+		}
+
+		/// <summary>
+		/// returns a integer version of getHatDirection
+		/// </summary>
+		/// <returns>int between 0 and 8</returns>
+		public int getPovDirection() {
+			return m_Data.hatSwitch;
+		}
+
+		/// <summary>
+		/// returns direction of the hat swich on the controller
+		/// </summary>
+		/// <returns>ControllerHatDir from direction</returns>
+		public ControllerHatDir getHatDirection() {
+			return (ControllerHatDir)m_Data.hatSwitch;
+		}
+
+		#region INTERNAL CONTROLLER FUNCTIONS
+
+		internal void startController(int a_ControllerIndex) {
+			m_ControllerIndex = a_ControllerIndex;
+			setCurrentController(m_ControllerIndex);
+			m_IsXbox = isControllerXbox();
+		}
+
+		internal void updateController() {
+			setCurrentController(m_ControllerIndex);
 			m_IsActive = isControllerActive();
 			if (!m_IsActive) {
+				//small check to see if we should remove old data from the controller
+				if (m_WasActive) {
+					m_WasActive = false;
+					//reset all controller information
+					m_Data = new ControllerData();
+				}
 				return;
 			}
-            for (int i = 0; i < 14; i++) {
+
+			m_WasActive = true;
+
+			for (int i = 0; i < 14; i++) {
+				bool last = m_Data.buttons[i];
 				m_Data.buttons[i] = getButton(i) >= 1;
+				if (last != m_Data.buttons[i]) {//if there was a different state from this frame and the last
+					switch (last) {
+						case true:
+							m_Data.buttonStates[i] = ButtonStates.Released;
+							break;
+						case false:
+							m_Data.buttonStates[i] = ButtonStates.Pressed;
+							break;
+					}
+				} else {
+					m_Data.buttonStates[i] = ButtonStates.Normal;
+				}
 			}
 			for (int i = 0; i < 6; i++) {
 				m_Data.axesValues[i] = getAxesValue(i) / 1000.0f;
 			}
 			m_Data.hatSwitch = getPovDir();
 		}
-        
-        public bool IsButtonDown(ControllerButtons a_Button) {
-            return m_Data.buttons[(int)a_Button];            
-        }
 
+		#endregion
 	}
 }

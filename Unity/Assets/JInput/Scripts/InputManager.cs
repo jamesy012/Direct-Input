@@ -5,7 +5,7 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace JInput {
-	public class JInputManager : MonoBehaviour {
+	public class InputManager : MonoBehaviour {
 
 		[DllImport("ControllerInputDll")]
 		private static extern int startInput();
@@ -31,15 +31,43 @@ namespace JInput {
         [DllImport("ControllerInputDll")]
         private static extern int getNumberOfControllers();
 
-        public static JInputManager m_Input;
+        private static InputManager m_Input;
 
 		[SerializeField]
 		private List<Controller> m_Controllers = new List<Controller>();
 
-        public int numberOfControllers{ get { return m_Controllers.Count; } }
+        public static int numberOfControllers{ get { return m_Input.m_Controllers.Count; } }
 
-        // Use this for initialization
-        void Start() {
+
+		#region FUNCTIONS
+		//gets a controller
+		public static Controller getController(int a_Index) {
+			if (a_Index >= m_Input.m_Controllers.Count || a_Index < 0) {
+				//throw new Exception();
+				return null;
+			}
+			return m_Input.m_Controllers[a_Index];
+		}
+
+		public static string GetNameFromHatDir(JInput.Controller a_Controller) {
+			setCurrentController(a_Controller.controllerIndex);
+			return Marshal.PtrToStringAnsi(getPovName(a_Controller.data.hatSwitch));
+		}
+		public static string GetNameFromButton(Controller a_Controller, int a_ButtonIndex) {
+			setCurrentController(a_Controller.controllerIndex);
+			return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex, a_Controller.isXboxController));
+		}
+
+		public static int getNumOfControllers() {
+			return numberOfControllers;
+		}
+		#endregion
+
+		//these functions are used to interface with unity and to allow the input to update and deal with controllers
+
+		#region MONOBEHAVIOUR FUNCTIONS
+		// Use this for initialization
+		void Start() {
 			if (m_Input != null) {
 				Debug.LogError("THERE ARE TWO INPUT SCRIPTS destroying " + transform.gameObject + " input script");
                 Destroy(this);
@@ -59,23 +87,6 @@ namespace JInput {
 			for (int i = 0; i < m_Controllers.Count; i++) {
 				m_Controllers[i].updateController();
 			}
-		}
-
-		public Controller getController(int a_Index) {
-            if(a_Index >= m_Controllers.Count || a_Index < 0) {
-                //throw new Exception();
-                return null;
-            }
-			return m_Controllers[a_Index];
-		}
-
-		public static string GetNameFromHatDir(JInput.Controller a_Controller) {
-            setCurrentController(a_Controller.m_ControllerIndex);
-			return Marshal.PtrToStringAnsi(getPovName(a_Controller.data.hatSwitch));
-		}
-		public static string GetNameFromButton(Controller a_Controller, int a_ButtonIndex) {
-            setCurrentController(a_Controller.m_ControllerIndex);
-            return Marshal.PtrToStringAnsi(getButtonNameConverted(a_ButtonIndex,a_Controller.m_IsXbox));
 		}
 
 		private void addControllers() {
@@ -99,5 +110,8 @@ namespace JInput {
         private void OnDestroy() {
             releaseInput();
         }
-    }
+
+		#endregion
+
+	}
 }
