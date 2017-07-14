@@ -161,7 +161,8 @@ const EXPORT_API int updateInputController(int a_Index) {
 		//controller.acquired = true;
 	}
 
-	hr = controller->joystick->GetDeviceState(sizeof(DIJOYSTATE2), &controller->joystickState);
+	//hr = controller->joystick->GetDeviceState(sizeof(DIJOYSTATE2), &controller->joystickState);
+	hr = controller->joystick->GetDeviceState(sizeof(DIJOYSTATE2), controller->joystickData.updateState());
 	if (FAILED(hr)) {
 		return hr;
 	}
@@ -303,7 +304,7 @@ const EXPORT_API int getButton(int a_Index) {
 			return 0;
 		}
 		int index = getButtonIndex(a_Index);
-		return getCurrentWCD()->joystickState.rgbButtons[index];
+		return getCurrentWCD()->joystickData.getCurrentState()->rgbButtons[index];
 	}
 	return 0;
 }
@@ -313,7 +314,7 @@ const EXPORT_API int getButtonNormal(int a_Index) {
 		if (a_Index >= (int)getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
-		return getCurrentWCD()->joystickState.rgbButtons[a_Index];
+		return getCurrentWCD()->joystickData.getCurrentState()->rgbButtons[a_Index];
 	}
 	return 0;
 }
@@ -328,7 +329,7 @@ const EXPORT_API float getAxesValue(int a_Index) {
 
 const EXPORT_API int getPovValue() {
 	if (getCurrentWCD()->joystick) {
-		return getCurrentWCD()->joystickState.rgdwPOV[0];
+		return getCurrentWCD()->joystickData.getCurrentState()->rgdwPOV[0];
 	}
 	return 0;
 }
@@ -336,8 +337,8 @@ const EXPORT_API int getPovValue() {
 const EXPORT_API int getPovDir() {
 	int hat = 0;
 	if (getCurrentWCD()->joystick) {
-		hat = ((int)getCurrentWCD()->joystickState.rgdwPOV[0] / 4500) + 1;
-		if (getCurrentWCD()->joystickState.rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
+		hat = ((int)getCurrentWCD()->joystickData.getCurrentState()->rgdwPOV[0] / 4500) + 1;
+		if (getCurrentWCD()->joystickData.getCurrentState()->rgdwPOV[0] == -1 || (unsigned int)hat >= 10) {
 			hat = 0;
 		}
 	}
@@ -602,16 +603,16 @@ float getAxisFromEnum(Axes a_Axis) {
 	WindowsControllerData* wcd = getCurrentWCD();
 	switch (a_Axis) {
 	case Axes::LStickX:
-		value = wcd->joystickState.lX;
+		value = wcd->joystickData.getCurrentState()->lX;
 		break;
 	case Axes::LStickY:
-		value = wcd->joystickState.lY;
+		value = wcd->joystickData.getCurrentState()->lY;
 		break;
 	case Axes::RStickX:
-		value = wcd->joystickState.lZ;
+		value = wcd->joystickData.getCurrentState()->lZ;
 		break;
 	case Axes::RStickY:
-		value = wcd->joystickState.lRz;
+		value = wcd->joystickData.getCurrentState()->lRz;
 		break;
 		//case Axes::LeftTrigger:
 		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRx + MAX_AXES_VALUE) / 2.0f;
@@ -620,10 +621,10 @@ float getAxisFromEnum(Axes a_Axis) {
 		//	value = (m_Controllers[m_ControllerIndex]->joystickState.lRy + MAX_AXES_VALUE) / 2.0f;
 		//	break;
 	case Axes::LeftTrigger:
-		value = wcd->joystickState.lRx;
+		value = wcd->joystickData.getCurrentState()->lRx;
 		break;
 	case Axes::RightTrigger:
-		value = wcd->joystickState.lRy;
+		value = wcd->joystickData.getCurrentState()->lRy;
 		break;
 	default:
 		return 0.0f;

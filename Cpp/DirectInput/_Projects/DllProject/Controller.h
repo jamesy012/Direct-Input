@@ -165,12 +165,50 @@ struct Controller_Data {
 
 struct WindowsControllerData;
 struct UserController;
+struct InputInfo;
+
+//the general idea here is swap the joystickState using currentState
+//
+
+struct InputInfo {
+private:
+	unsigned char currentState;
+
+	unsigned int nextState() {
+		return currentState ^ 1;
+	}
+public:
+	DIJOYSTATE2 joystickState[2];
+
+	DIJOYSTATE2* getNextState() {
+		return &joystickState[nextState()];
+	}
+
+	DIJOYSTATE2* getLastState() {
+		return &joystickState[nextState()];
+	}
+
+	DIJOYSTATE2* getCurrentState() {
+		return &joystickState[currentState];
+	}
+
+	DIJOYSTATE2* updateState() {
+		currentState = nextState();
+		return getCurrentState();
+	}
+};
+
 
 struct WindowsControllerData {
+	//current and last frames DIJoyState2 data
+	InputInfo joystickData;
+
+	////data from the controller
+	//DIJOYSTATE2 joystickState;
+
 	//reference to the direct input joystick object
 	LPDIRECTINPUTDEVICE8 joystick;
-	//data from the controller
-	DIJOYSTATE2 joystickState;
+
 	//how many output's does this controller have
 	DIDEVCAPS capabilities;
 	//information about this device
