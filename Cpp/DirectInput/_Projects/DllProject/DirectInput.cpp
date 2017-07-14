@@ -189,12 +189,12 @@ const EXPORT_API int updateControllers() {
 	int newControllerCount = m_NumOfControllersFound - startNumControllers;
 
 	//if there was a new controller, then reset all controllers and remake lists
-	if (newControllerCount != 0) {
+	if (newControllerCount > 0) {
 
 		//reset all controllers
 		for (size_t i = 0; i < m_WindowsControllers.size(); i++) {
 			if (m_WindowsControllers[i] != nullptr) {
-				if (!m_WindowsControllers[i]->acquired) {
+				//if (!m_WindowsControllers[i]->acquired) {
 					m_WindowsControllers[i]->joystick->Unacquire();
 					m_WindowsControllers[i]->joystick->Release();
 
@@ -203,11 +203,11 @@ const EXPORT_API int updateControllers() {
 
 					delete m_WindowsControllers[i];
 					m_WindowsControllers[i] = nullptr;
-				}
+				//}
 			}
 		}
 
-		//m_WindowsControllers.clear();
+		m_WindowsControllers.clear();
 
 		HRESULT hr;
 		////go and set up all old controllers
@@ -550,7 +550,7 @@ BOOL CALLBACK enumJoystickControllerCallback(const DIDEVICEINSTANCE* instance, V
 	HRESULT hr;
 	//create WindowsControllerData
 	WindowsControllerData* wcd = new WindowsControllerData();
-	m_LatestWindowsController = wcd;
+	m_LatestWindowsController = wcd;//latest controller required for setting up axes
 
 	hr = di->CreateDevice(instance->guidInstance, &wcd->joystick, NULL);
 	if (FAILED(hr)) {
