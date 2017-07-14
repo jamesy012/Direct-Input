@@ -300,11 +300,31 @@ const EXPORT_API int getControllerIndex() {
 
 const EXPORT_API int getButton(int a_Index) {
 	if (getCurrentWCD()->joystick) {
-		if (a_Index >= (int)getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
+		if (a_Index >= (int) getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
 		int index = getButtonIndex(a_Index);
-		return getCurrentWCD()->joystickData.getCurrentState()->rgbButtons[index];
+		return getCurrentWCD()->joystickData.isButtonDown(index);
+	}
+	return 0;
+}
+const EXPORT_API int getButtonDown(int a_Index) {
+	if (getCurrentWCD()->joystick) {
+		if (a_Index >= (int) getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
+			return 0;
+		}
+		int index = getButtonIndex(a_Index);
+		return getCurrentWCD()->joystickData.wasButtonPressed(index);
+	}
+	return 0;
+}
+const EXPORT_API int getButtonUp(int a_Index) {
+	if (getCurrentWCD()->joystick) {
+		if (a_Index >= (int) getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
+			return 0;
+		}
+		int index = getButtonIndex(a_Index);
+		return getCurrentWCD()->joystickData.wasButtonReleased(index);
 	}
 	return 0;
 }
@@ -314,7 +334,7 @@ const EXPORT_API int getButtonNormal(int a_Index) {
 		if (a_Index >= (int)getCurrentWCD()->capabilities.dwButtons || a_Index <= -1) {
 			return 0;
 		}
-		return getCurrentWCD()->joystickData.getCurrentState()->rgbButtons[a_Index];
+		return getCurrentWCD()->joystickData.isButtonDown(a_Index);
 	}
 	return 0;
 }

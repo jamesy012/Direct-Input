@@ -39,6 +39,8 @@ int main() {
 
 		system("cls");
 
+		std::cout << "num controllers: " << getNumberOfControllers() << std::endl << std::endl;
+
 		for (int controller = 0; controller < getNumberOfControllers(); controller++) {
 			setCurrentController(controller);
 			if (!isControllerActive()) {
@@ -75,16 +77,16 @@ int main() {
 			//}
 		}
 
-		//int amountOfButtonsDown = 0;
-		//for (int controller = 0; controller < getNumberOfControllers(); controller++) {
-		//	setCurrentController(controller);
-		//	if (getButton(Buttons::A)) {
-		//		amountOfButtonsDown++;
-		//	}
-		//}
-		//if (amountOfButtonsDown == 2) {
-		//	loop &= false;
-		//}
+		int amountOfButtonsDown = 0;
+		for (int controller = 0; controller < getNumberOfControllers(); controller++) {
+			setCurrentController(controller);
+			if (getButton(Buttons::A)) {
+				amountOfButtonsDown++;
+			}
+		}
+		if (amountOfButtonsDown == 2) {
+			loop &= false;
+		}
 	}
 
 	releaseInput();

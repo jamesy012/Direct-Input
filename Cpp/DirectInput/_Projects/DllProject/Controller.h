@@ -196,6 +196,31 @@ public:
 		currentState = nextState();
 		return getCurrentState();
 	}
+
+	bool isButtonDown(int a_Button) {
+		return !!getCurrentState()->rgbButtons[a_Button];
+	}
+
+	//checks to see if the button was pressed this frame
+	bool wasButtonPressed(int a_Button) {
+		//if last fame was unpressed and this frame is pressed
+		//possibility to remove the if???
+		bool lastFrame = !!getLastState()->rgbButtons[a_Button];
+		if (!lastFrame) {//if last frame was up
+			return !!getCurrentState()->rgbButtons[a_Button];//return if current button is down
+		}
+		return false;
+	}
+
+	bool wasButtonReleased(int a_Button) {
+		//if last fame was unpressed and this frame is pressed
+		//possibility to remove the if???
+		bool lastFrame = !!getLastState()->rgbButtons[a_Button];
+		if (lastFrame) {//if last frame was down
+			return !getCurrentState()->rgbButtons[a_Button];//return if current button is up 
+		}
+		return false;
+	}
 };
 
 
