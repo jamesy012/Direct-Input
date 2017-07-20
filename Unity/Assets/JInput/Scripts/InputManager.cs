@@ -5,6 +5,11 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace JInput {
+
+    /// <summary>
+    /// manager of all input going through the dll
+    /// also deals with controllers and when there are new ones added
+    /// </summary>
     public class InputManager : MonoBehaviour {
 
         #region DLL FUNCTIONS
@@ -59,6 +64,10 @@ namespace JInput {
 
 
         #region FUNCTIONS
+
+        //todo get last interacted with controller
+        //todo check all controllers for input (check if any controller pressed X)
+
         //gets a controller
         public static Controller getController(int a_Index) {
 
