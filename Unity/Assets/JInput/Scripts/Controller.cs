@@ -30,6 +30,11 @@ namespace JInput {
         RightTrigger
     };
 
+    public enum ControllerVec2Axes {
+        LStick,
+        RStick
+    };
+
     public enum ControllerButtons {
         Cross = 0,
         A = 0,
@@ -130,15 +135,23 @@ namespace JInput {
 			return m_Data.buttonStates[(int)a_Button] == ButtonStates.Released;
 		}
 
-		public float getAxisValue(ControllerAxes a_Axes) {
-			return m_Data.axesValues[(int)a_Axes];
-		}
+        public float getAxisValue(ControllerAxes a_Axes) {
+            return m_Data.axesValues[(int)a_Axes];
+        }
 
-		/// <summary>
-		/// returns a integer version of getHatDirection
-		/// </summary>
-		/// <returns>int between 0 and 8</returns>
-		public int getPovDirection() {
+        public Vector2 getAxisValue(ControllerVec2Axes a_Axes) {
+            Vector2 axis = new Vector2();
+            int axesIndex = (int)a_Axes;
+            axis.x = m_Data.axesValues[axesIndex * 2 + 0];
+            axis.y = m_Data.axesValues[axesIndex * 2 + 1];
+            return axis;
+        }
+
+        /// <summary>
+        /// returns a integer version of getHatDirection
+        /// </summary>
+        /// <returns>int between 0 and 8</returns>
+        public int getPovDirection() {
 			return m_Data.hatSwitch;
 		}
 
@@ -173,24 +186,20 @@ namespace JInput {
 
 			m_WasActive = true;
 
+            //go through 14 buttons, should change to number of buttons for controller
 			for (int i = 0; i < 14; i++) {
 				bool last = m_Data.buttons[i];
 				m_Data.buttons[i] = getButton(i) >= 1;
-				if (last != m_Data.buttons[i]) {//if there was a different state from this frame and the last
-					switch (last) {
-						case true:
-							m_Data.buttonStates[i] = ButtonStates.Released;
-							break;
-						case false:
-							m_Data.buttonStates[i] = ButtonStates.Pressed;
-							break;
-					}
-				} else {
-					m_Data.buttonStates[i] = ButtonStates.Normal;
-				}
+                //if the button is not different then normal, else if the last one was down then released else pressed
+                m_Data.buttonStates[i] = last != m_Data.buttons[i] ? (last ? ButtonStates.Released : ButtonStates.Pressed) : ButtonStates.Normal;
 			}
 			for (int i = 0; i < 6; i++) {
 				m_Data.axesValues[i] = getAxesValue(i) / 1000.0f;
+                //dead zone
+                float deadZone = InputManager.getControllerDeadZone();
+                if(Mathf.Abs(m_Data.axesValues[i]) <= deadZone) {
+                    m_Data.axesValues[i] = 0;
+                }
 			}
 			m_Data.hatSwitch = getPovDir();
 		}
